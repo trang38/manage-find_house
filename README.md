@@ -5,3 +5,8 @@
     add 'path('api/address/', include('vi_address.urls')),' to urls.py
     python manage.py migrate
     python manage.py insert_data
+
+## commit $ push
+in cmd: 
+git commit -a
+git push -u origin main
