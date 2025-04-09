@@ -8,5 +8,5 @@
 
 ## commit $ push
 in cmd: 
-git commit -a
-git push -u origin main
+    git commit -a
+    git push -u origin main

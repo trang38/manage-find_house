@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os, sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +48,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',# add for all-auth
     'allauth.socialaccount.providers.google', # add for all-auth
     'allauth.headless', 
+    'allauth.mfa',
+    'allauth.usersessions',
     'vi_address', # add django-vi-address
 ]
 
@@ -169,8 +175,8 @@ LOCALE_PATHS = [
 SOCIALACCOUNT_PROVIDERS = {
    'google': {
        'APP': {
-           'client_id': '969948850324-njulnke3u468ebp86jjklta8fk82g5c3.apps.googleusercontent.com',
-           'secret': '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',
+           'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY'),
+           'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
            'key': ''
        }
    }
@@ -179,13 +185,31 @@ SOCIALACCOUNT_PROVIDERS = {
 # AllAuth settings
 SITE_ID = 1
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+if 'test' in sys.argv:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
+
+
 ACCOUNT_LOGIN_REDIRECT_URL ="/"
 ACCOUNT_LOGOUT_REDIRECT_URL ="/"
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = False
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_PASSWORD_MIN_LENGTH = 8
 ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
 ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
+
+
 
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
@@ -203,6 +227,17 @@ HEADLESS_FRONTEND_URLS = {
     "socialaccount_login_error": "/account/provider/callback",
 }
 HEADLESS_SERVE_SPECIFICATION = True
+
+MFA_SUPPORTED_TYPES = ['totp', 'recovery_codes', 'webauthn']
+MFA_PASSKEY_LOGIN_ENABLED = True
+MFA_PASSKEY_SIGNUP_ENABLED = True
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+SPECTACULAR_SETTINGS = {
+    "EXTERNAL_DOCS": {"description": "allauth", "url": "/_allauth/openapi.html"},
+}
 
 
 # add for django-cors-headers
