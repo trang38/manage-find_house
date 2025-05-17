@@ -10,3 +10,6 @@
 in cmd: 
     git commit -a
     git push -u origin main
+
+## fix:
+lỗi trong trang signup: mật khẩu quá ngắn, cần đặt sao cho mật khâur tối thiểu 8 ký tự

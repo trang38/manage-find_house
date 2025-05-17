@@ -29,8 +29,8 @@ SECRET_KEY = 'django-insecure-!%l-gu4&a(vsq+cfk9m0c^p^*e84-qwj-1bzj$&5v-$b_r_hp+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "localhost:8000", "localhost:3000"]
 
 # Application definition
 
@@ -48,9 +48,17 @@ INSTALLED_APPS = [
     'allauth.socialaccount',# add for all-auth
     'allauth.socialaccount.providers.google', # add for all-auth
     'allauth.headless', 
-    'allauth.mfa',
-    'allauth.usersessions',
     'vi_address', # add django-vi-address
+    'crud',
+    'chat',
+    'infor',
+    'house',
+    'bill',
+    'book',
+    'constract',
+    'noti',
+    'report',
+    'review'
 ]
 
 MIDDLEWARE = [
@@ -143,6 +151,11 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -151,20 +164,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # add for all-auth
 AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        # For each OAuth based provider, either add a ``SocialApp``
-        # (``socialaccount`` app) containing the required client
-        # credentials, or list them here:
-        'APP': {
-            'client_id': '123',
-            'secret': '456',
-            'key': ''
-        }
-    }
-}
 
 # add translate file 
 LOCALE_PATHS = [
@@ -178,9 +181,20 @@ SOCIALACCOUNT_PROVIDERS = {
            'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY'),
            'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
            'key': ''
-       }
+       },
+        'AUTH_PARAMS': {
+            'prompt': 'select_account'  # yêu cầu chọn tài khoản google
+        }
    }
 }
+# SOCIALACCOUNT_PROVIDERS = {
+#     'google': {
+#         'SCOPE': ['profile', 'email'],
+#         'AUTH_PARAMS': {'access_type': 'online'},
+#         'REDIRECT_URI': 'http://localhost:8000/accounts/google/login/callback/', 
+#         'OAUTH_PKCE_ENABLED': True,
+#     }
+# }
 
 # AllAuth settings
 SITE_ID = 1
@@ -196,19 +210,22 @@ if 'test' in sys.argv:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
 
 
-ACCOUNT_LOGIN_REDIRECT_URL ="/"
-ACCOUNT_LOGOUT_REDIRECT_URL ="/"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_PASSWORD_MIN_LENGTH = 8
-ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
-ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
-ACCOUNT_LOGIN_BY_CODE_ENABLED = True
-ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
+# ACCOUNT_LOGIN_REDIRECT_URL ="/"
+# ACCOUNT_LOGOUT_REDIRECT_URL ="/"
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_PASSWORD_MIN_LENGTH = 8
+# ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
+# ACCOUNT_LOGOUT_ON_GET = True
+# ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+# ACCOUNT_LOGIN_METHODS = {"email"}
+# ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+# ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+# ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
 
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "none"
 
 
 SOCIALACCOUNT_EMAIL_REQUIRED = True
@@ -219,29 +236,39 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 
 # set up for allauth api
 HEADLESS_ONLY = True
+# HEADLESS_FRONTEND_URLS = {
+#     "account_confirm_email": "/account/verify-email/{key}",
+#     "account_reset_password_from_key": "/account/password/reset/key/{key}",
+#     "account_signup": "/account/signup",  
+#     "account_reset_password": "/account/password/reset",
+#     "socialaccount_login_error": "/account/provider/callback",
+# }
+# HEADLESS_SERVE_SPECIFICATION = True
+
+# MFA_SUPPORTED_TYPES = ['totp', 'recovery_codes', 'webauthn']
+# MFA_PASSKEY_LOGIN_ENABLED = True
+# MFA_PASSKEY_SIGNUP_ENABLED = True
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "/account/verify-email/{key}",
-    "account_reset_password_from_key": "/account/password/reset/key/{key}",
-    "account_signup": "/account/signup",  
-    "account_reset_password": "/account/password/reset",
-    "socialaccount_login_error": "/account/provider/callback",
+    "account_confirm_email": "http://localhost:3000",
+    "account_reset_password_from_key": "http://localhost:3000",
+    "account_signup": "http://localhost:3000",
+    "socialaccount_login_error": "http://localhost:3000",
 }
-HEADLESS_SERVE_SPECIFICATION = True
 
-MFA_SUPPORTED_TYPES = ['totp', 'recovery_codes', 'webauthn']
-MFA_PASSKEY_LOGIN_ENABLED = True
-MFA_PASSKEY_SIGNUP_ENABLED = True
-
-REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-SPECTACULAR_SETTINGS = {
-    "EXTERNAL_DOCS": {"description": "allauth", "url": "/_allauth/openapi.html"},
-}
+# REST_FRAMEWORK = {
+#     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+# }
+# SPECTACULAR_SETTINGS = {
+#     "EXTERNAL_DOCS": {"description": "allauth", "url": "/_allauth/openapi.html"},
+# }
 
 
 # add for django-cors-headers
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = (
-    'http://localhost:3000',
-)
+# CORS_ORIGIN_ALLOW_ALL = False
+# CORS_ORIGIN_WHITELIST = (
+#     'http://localhost:3000',
+# )
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+
