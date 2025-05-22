@@ -4,6 +4,7 @@ import os
 from django.utils.deconstruct import deconstructible
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
+
 @deconstructible
 class PathAndRename:
     def __init__(self, sub_path):
@@ -14,7 +15,7 @@ class PathAndRename:
         filename = f"{uuid.uuid4().hex}.{ext}"
         return os.path.join(self.sub_path, filename)
     
-class IsOwnerOrReadOnly(BasePermission):
+class IsRoomOwner(BasePermission):
     """
     Object-level permission to only allow owners of an object to edit it.
     Assumes the model instance has an `owner` attribute.
@@ -27,4 +28,66 @@ class IsOwnerOrReadOnly(BasePermission):
             return True
 
         # Instance must have an attribute named `owner`.
-        return obj.owner == request.user
+        return obj.house.owner == request.user
+    
+
+class IsLandlord(BasePermission):
+    """
+    Chỉ cho phép user có role 'landlord' được create, update, delete house hoặc room.
+    """
+
+    def has_permission(self, request, view):
+        # if request.method == 'POST':
+            return (
+                request.user.is_authenticated and 
+                hasattr(request.user.infor, 'role') and 
+                request.user.infor.role == 'landlord'
+            )
+        # return True
+    
+# class IsHouseOwner(BasePermission):
+#     """
+#     Chỉ cho phép landlord là chủ sở hữu của house được tạo room trong house đó.
+#     """
+
+#     def has_permission(self, request, view):
+#         # Chỉ áp dụng khi tạo mới (POST)
+#         if request.method == 'POST':
+#             user = request.user
+#             if not user.is_authenticated or user.infor.role != 'landlord':
+#                 return False
+
+#             # Lấy house_id từ request data
+#             house_id = request.data.get('house')
+#             if not house_id:
+#                 return False
+
+#             try:
+#                 house = House.objects.get(id=house_id)
+#             except House.DoesNotExist:
+#                 return False
+
+#             return house.owner == user
+
+#         # Cho phép các hành động khác (list, retrieve...) nếu cần
+#         return True
+
+class IsTenantInContract(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        # obj là instance của Rating hoặc RoomFeedback
+        if hasattr(obj, 'contract'):
+            return request.user == obj.contract.tenant
+        return False
+
+
+class IsLandlordOrTenantInContract(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if hasattr(obj, 'contract'):
+            return request.user == obj.contract.landlord or request.user == obj.contract.tenant
+        return False

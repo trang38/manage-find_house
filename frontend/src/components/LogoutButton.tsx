@@ -14,7 +14,7 @@ export default function LogoutButton() {
   });
   return (
     <Button onClick={() => mutate()} variant="contained">
-      Logout
+      Đăng xuất
     </Button>
   );
 }

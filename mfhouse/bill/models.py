@@ -9,7 +9,6 @@ class Payment(models.Model):
     water_fee = models.IntegerField(null=True, blank=True)
     extra_fees = models.IntegerField(null=True, blank=True)
     total_amount = models.IntegerField(null=True, blank=True)
-    paid = models.BooleanField(default=False)
     confirm_paid = models.BooleanField(default=False)
     confirm_receive = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

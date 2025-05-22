@@ -4,12 +4,12 @@ from mfhouse.chat.models import Chat
 from infor.serializers import InforSerializer
 
 class MessageSerializer(serializers.ModelSerializer):
-    reciever_profile = InforSerializer(read_only=True)
+    receiver_profile = InforSerializer(read_only=True)
     sender_profile = InforSerializer(read_only=True)
 
     class Meta:
         model = Chat
-        fields = ['id','sender', 'reciever', 'reciever_profile', 'sender_profile' ,'message', 'is_read', 'date']
+        fields = ['id','sender', 'receiver', 'receiver_profile', 'sender_profile' ,'message', 'is_read', 'date']
     
     def __init__(self, *args, **kwargs):
         super(MessageSerializer, self).__init__(*args, **kwargs)

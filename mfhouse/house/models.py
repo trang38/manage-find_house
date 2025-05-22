@@ -52,7 +52,6 @@ class Room(models.Model):
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES, default="1")
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    area = models.FloatField()
     is_available = models.BooleanField(default=True)
 
     deposit = models.IntegerField(null=True, blank=True)

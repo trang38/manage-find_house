@@ -5,18 +5,18 @@ export async function signupMutation(details: {
   password: string;
   username: string;
 }) {
-  await fetch(
-    `${process.env.REACT_APP_API_URL}/_allauth/browser/v1/auth/signup`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFTOKEN": getCSRFToken() || "", 
-      },
-      body: JSON.stringify(details),
-    },
-  );
+  // await fetch(
+  //   `${process.env.REACT_APP_API_URL}/_allauth/browser/v1/auth/signup`,
+  //   {
+  //     method: "POST",
+  //     credentials: "include",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "X-CSRFTOKEN": getCSRFToken() || "", 
+  //     },
+  //     body: JSON.stringify(details),
+  //   },
+  // );
   const response = await fetch(
     `${process.env.REACT_APP_API_URL}/_allauth/browser/v1/auth/signup`,
     {

@@ -8,7 +8,7 @@
 
 ## commit $ push
 in cmd: 
-    git commit -a
+    git commit -a (commit all tracked files => git add new created files)
     git push -u origin main
 
 ## fix:

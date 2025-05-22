@@ -6,12 +6,12 @@ export default function Header() {
     return (
         <div className="h-[30px] bg-[#39ff14] text-[#fff] flex  flex-row items-center justify-between">
             <div></div>
-            <div className="flex flex-row">
+            <div className="flex flex-row gap-[10px]">
                 <Link to={"/"}>Home</Link>
                 {isLoading ? (
                 <span>Loading...</span>
                 ) : data?.isAuthenticated ? (
-                <Link to="/profile" className="hover:underline">
+                <Link to="/profile/me" className="hover:underline">
                     {data.user?.username || "Profile"}
                 </Link>
                 ) : (

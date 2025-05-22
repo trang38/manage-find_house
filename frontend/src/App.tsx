@@ -7,6 +7,8 @@ import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import SignupForm from "./components/SignupForm";
 import Header from "./components/header";
 import Home from "./pages/home";
+import Infor from "./pages/infor";
+import CurrentUserProfile from "./pages/infor";
 
 function Initializer() {
   const { isLoading } = useAuthSessionQuery();
@@ -44,6 +46,7 @@ export default function App() {
           {/* <Route path="app" element={<PrivateRoute />}> */}
             <Route index element={<CrudBody />} />
             <Route path="app" element={<Home />} />
+            <Route path="profile/me" element={<CurrentUserProfile />} />
           {/* </Route> */}
       </Routes>
     </BrowserRouter>

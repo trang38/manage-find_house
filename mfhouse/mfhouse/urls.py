@@ -18,13 +18,36 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+from infor.views import CurrentUserAPIView, PublicUserAPIView, SearchUserAPIView
+from house.views import HouseViewSet, PostViewSet, RoomMediaViewSet, RoomViewSet
+from book.views import BookingViewSet
+from bill.views import PaymentViewSet, RefundViewSet
+from constract.views import ContractViewSet
+from review.views import RatingViewSet, RoomFeedbackViewSet
+
+router = DefaultRouter()
+router.register(r'houses', HouseViewSet)
+router.register(r'rooms', RoomViewSet)
+router.register(r'room-media', RoomMediaViewSet)
+router.register(r'posts', PostViewSet)
+router.register(r'bookings', BookingViewSet)
+router.register(r'contracts', ContractViewSet)
+router.register(r'ratings', RatingViewSet)
+router.register(r'room-feedbacks', RoomFeedbackViewSet)
+router.register(r'payments', PaymentViewSet)
+router.register(r'refunds', RefundViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
     path('accounts/', include('allauth.urls')), # add urls of all-auth
     path("_allauth/", include("allauth.headless.urls")), # include api endpoints of allauth
     path('api/address/', include('vi_address.urls')), # add urls of vi-address
     path("", include("crud.urls")),
+    path('api/users/me/', CurrentUserAPIView.as_view(), name='user-current'),
+    path('api/users/<str:username>', PublicUserAPIView.as_view(), name='user-public'),
+    path('api/users/search/', SearchUserAPIView.as_view(), name='user-search'),
 ]
 urlpatterns +=static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -7,7 +7,7 @@ from infor.models import Infor
 class Chat(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user")
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="sender")
-    reciever = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="reciever")
+    receiver = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="receiver")
     
     message = models.TextField()
 
@@ -19,13 +19,13 @@ class Chat(models.Model):
         verbose_name_plural = "Message"
 
     def __str__(self):
-        return f"{self.sender} - {self.reciever}"
+        return f"{self.sender} - {self.receiver}"
 
     @property
     def sender_infor(self):
         sender_infor = Infor.objects.get(user=self.sender)
         return sender_infor
     @property
-    def reciever_infor(self):
-        reciever_infor = Infor.objects.get(user=self.reciever)
-        return reciever_infor
+    def receiver_infor(self):
+        receiver_infor = Infor.objects.get(user=self.receiver)
+        return receiver_infor
