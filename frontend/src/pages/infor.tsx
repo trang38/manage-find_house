@@ -1,13 +1,4 @@
 import LogoutButton from "../components/LogoutButton";
-
-// export default function Infor() {
-//     return (
-//         <div className="flex items-center mt-[30px] text-center flex-col">
-//             <p className="w-fit self-center m-auto">Thông tin</p>
-//             <div className="mt-[5rem]"><LogoutButton /></div>
-//         </div>
-//     )
-// }
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getCSRFToken } from "../utils/cookies";
@@ -33,7 +24,7 @@ interface Infor {
   id_back_image?: File | string;
   bank_name?: string;
   bank_account?: string;
-  bank_branch?: string;
+  bank_account_name?: string;
   show_bio: boolean;
   show_phone_number: boolean;
   show_address: boolean;
@@ -188,6 +179,7 @@ const CurrentUserProfile: React.FC = () => {
           <button onClick={() => setEditing(true)} className="bg-blue-600 text-white px-4 py-2 rounded">Chỉnh sửa</button>
         </div>
       )}
+      <div className="mt-[5rem]"><LogoutButton /></div>
     </div>
   );
 };

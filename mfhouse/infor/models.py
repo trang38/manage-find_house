@@ -32,7 +32,7 @@ class Infor(models.Model):
     
     bank_name = models.CharField(max_length=255, blank=True, null=True)
     bank_account = models.CharField(max_length=255, blank=True, null=True)
-    bank_branch = models.CharField(max_length=255, blank=True, null=True)
+    bank_account_name = models.CharField(max_length=255, blank=True, null=True)
 
     show_bio = models.BooleanField(default=True)
     show_phone_number = models.BooleanField(default=True)

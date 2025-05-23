@@ -2,13 +2,15 @@ from django.shortcuts import render
 
 # Create your views here.
 from rest_framework import viewsets, permissions
+
+from mfhouse.utils import CannotDeletePay
 from .models import Payment, Refund
 from .serializers import PaymentSerializer, RefundSerializer
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CannotDeletePay]
 
     def get_queryset(self):
         user = self.request.user
@@ -18,7 +20,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 class RefundViewSet(viewsets.ModelViewSet):
     queryset = Refund.objects.all()
     serializer_class = RefundSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CannotDeletePay]
 
     def get_queryset(self):
         user = self.request.user

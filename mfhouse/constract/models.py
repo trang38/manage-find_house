@@ -1,10 +1,10 @@
-from datetime import timezone
+from datetime import date, timezone
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from house.models import Room
 from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
-
+from dateutil.relativedelta import relativedelta
 from book.models import Booking
 # Create your models here.
 class Contract(models.Model):
@@ -48,6 +48,13 @@ class Contract(models.Model):
                 if old.completed_at is not None:
                     raise ValidationError("Contract đã hoàn thành, không thể cập nhật.")
     def save(self, *args, **kwargs):
+        if self.booking:
+            if not self.room:
+                self.room = self.booking.post.room
+            if not self.tenant:
+                self.tenant = self.booking.tenant
+            if not self.landlord:
+                self.landlord = self.booking.post.room.house.owner
         is_completed_now = (
             self.landlord_completed and
             self.tenant_completed and
@@ -77,7 +84,7 @@ class Contract(models.Model):
                 "landlord_id_back_image": self.landlord.infor.id_back_image,
                 "landlord_bank_name": self.landlord.infor.bank_name or "",
                 "landlord_bank_account": self.landlord.infor.bank_account or "",
-                "landlord_bank_branch": self.landlord.infor.bank_branch or "",
+                "landlord_bank_account_name": self.landlord.infor.bank_branch or "",
 
                 "tenant_fullname": self.tenant.infor.full_name,
                 "tenant_email": self.tenant.email,
@@ -93,7 +100,7 @@ class Contract(models.Model):
                 "tenant_id_back_image": self.tenant.infor.id_back_image,
                 "tenant_bank_name": self.tenant.infor.bank_name or "",
                 "tenant_bank_account": self.tenant.infor.bank_account or "",
-                "tenant_bank_branch": self.tenant.infor.bank_branch or "",
+                "tenant_bank_account_name": self.tenant.infor.bank_branch or "",
 
                 "room_city": self.room.house.city,
                 "room_district": self.room.house.district,
@@ -121,3 +128,21 @@ class Contract(models.Model):
         if self.completed_at and self.completed_at != self.updated_at:
             Contract.objects.filter(pk=self.pk).update(completed_at=self.updated_at)
             self.completed_at = self.updated_at
+
+    @property
+    def remaining_time(self):
+        if not self.end_date: 
+            return (0, 0)
+        today = date.today()
+        if self.end_date < today:
+            return (0, 0)
+        delta = relativedelta(self.end_date, today)
+        return (delta.months + delta.years * 12, delta.days)
+    
+    @property
+    def is_expiring_soon(self):
+        if not self.end_date:
+            return False
+        today = date.today()
+        remaining_days = (self.end_date - today).days
+        return remaining_days == 30 or remaining_days == 7

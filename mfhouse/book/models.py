@@ -15,7 +15,7 @@ class Booking(models.Model):
     tenant = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='bookings')
     post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='bookings')
+        Post, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     booking_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(

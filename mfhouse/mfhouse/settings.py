@@ -58,7 +58,8 @@ INSTALLED_APPS = [
     'constract',
     'noti',
     'report',
-    'review'
+    'review',
+    'scheduler.apps.SchedulerConfig', # add cron job
 ]
 
 MIDDLEWARE = [

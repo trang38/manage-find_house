@@ -3,6 +3,7 @@ import uuid
 import os
 from django.utils.deconstruct import deconstructible
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.exceptions import PermissionDenied
 
 
 @deconstructible
@@ -91,3 +92,33 @@ class IsLandlordOrTenantInContract(BasePermission):
         if hasattr(obj, 'contract'):
             return request.user == obj.contract.landlord or request.user == obj.contract.tenant
         return False
+    
+class CannotDeleteCompletedContract(BasePermission):
+    """
+    Prevent landlords or tenants from deleting a contract with status 'completed'
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'DELETE' and obj.status == 'completed':
+            raise PermissionDenied("You cannot delete a completed contract.")
+        return True
+
+class CannotDeleteBooking(BasePermission):
+    """
+    Prevent landlords or tenants from deleting a Booking.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'DELETE':
+            raise PermissionDenied("You cannot delete the booking request.")
+        return True
+    
+class CannotDeletePay(BasePermission):
+    """
+    Prevent landlords or tenants from deleting a Booking.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'DELETE' and obj.confirm_paid == True:
+            raise PermissionDenied("You cannot delete the booking request.")
+        return True
