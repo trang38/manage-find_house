@@ -120,5 +120,8 @@ class CannotDeletePay(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method == 'DELETE' and obj.confirm_paid == True:
-            raise PermissionDenied("You cannot delete the booking request.")
+            raise PermissionDenied("You cannot delete the payment.")
         return True
+    
+
+

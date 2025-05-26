@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 from vi_address.models import City, District, Ward
 
-from mfhouse.utils import PathAndRename
+from mfhouse.permissions import PathAndRename
 
 # Create your models here.
 class House(models.Model):

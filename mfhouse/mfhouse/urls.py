@@ -24,19 +24,24 @@ from house.views import HouseViewSet, PostViewSet, RoomMediaViewSet, RoomViewSet
 from book.views import BookingViewSet
 from bill.views import PaymentViewSet, RefundViewSet
 from constract.views import ContractViewSet
+# from noti.views import NotificationViewSet
 from review.views import RatingViewSet, RoomFeedbackViewSet
+from websocket_notifications.api.rest_framework import NotificationGroupViewSet
+
 
 router = DefaultRouter()
 router.register(r'houses', HouseViewSet)
 router.register(r'rooms', RoomViewSet)
 router.register(r'room-media', RoomMediaViewSet)
 router.register(r'posts', PostViewSet)
-router.register(r'bookings', BookingViewSet)
+router.register(r'bookings', BookingViewSet) # POST /api/bookings/{id}/cancel/  , POST /api/bookings/{id}/accept/ , POST /api/bookings/{id}/decline/
 router.register(r'contracts', ContractViewSet)
 router.register(r'ratings', RatingViewSet)
 router.register(r'room-feedbacks', RoomFeedbackViewSet)
 router.register(r'payments', PaymentViewSet)
 router.register(r'refunds', RefundViewSet)
+# router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register('websocket-notifications/groups', viewset=NotificationGroupViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -48,6 +53,7 @@ urlpatterns = [
     path('api/users/me/', CurrentUserAPIView.as_view(), name='user-current'),
     path('api/users/<str:username>', PublicUserAPIView.as_view(), name='user-public'),
     path('api/users/search/', SearchUserAPIView.as_view(), name='user-search'),
+    path('websocket-notifications/', include('websocket_notifications.urls', namespace='websocket_notifications')) # add api of websocket-notifications
 ]
 urlpatterns +=static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

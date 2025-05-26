@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Rating, RoomFeedback
 from .serializers import RatingSerializer, RoomFeedbackSerializer
-from mfhouse.utils import IsTenantInContract, IsLandlordOrTenantInContract
+from mfhouse.permissions import IsTenantInContract, IsLandlordOrTenantInContract
 from rest_framework.permissions import IsAuthenticated
 
 class RatingViewSet(viewsets.ModelViewSet):

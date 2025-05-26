@@ -7,8 +7,8 @@ import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import SignupForm from "./components/SignupForm";
 import Header from "./components/header";
 import Home from "./pages/home";
-import Infor from "./pages/infor";
 import CurrentUserProfile from "./pages/infor";
+import Footer from "./components/footer";
 
 function Initializer() {
   const { isLoading } = useAuthSessionQuery();
@@ -49,6 +49,7 @@ export default function App() {
             <Route path="profile/me" element={<CurrentUserProfile />} />
           {/* </Route> */}
       </Routes>
+      <Footer />
     </BrowserRouter>
   )
 }

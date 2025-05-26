@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites', 
     'rest_framework', # add rest framework
     'corsheaders', # add django-cors-headers
     'allauth', # add for all-auth
@@ -56,10 +57,13 @@ INSTALLED_APPS = [
     'bill',
     'book',
     'constract',
-    'noti',
+    # 'noti',
     'report',
     'review',
     'scheduler.apps.SchedulerConfig', # add cron job
+    'websocket_notifications',  # add websocket-notifications package
+    'snitch', # add django-snitch
+    
 ]
 
 MIDDLEWARE = [
@@ -79,7 +83,7 @@ ROOT_URLCONF = 'mfhouse.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/"templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -113,7 +117,14 @@ DATABASES = {
         'HOST': 'localhost',
     }
 }
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -206,6 +217,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
 
 if 'test' in sys.argv:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 

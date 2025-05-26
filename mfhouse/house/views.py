@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions
 from .models import House, Room, RoomMedia, Post
 from .serializers import HouseSerializer, RoomSerializer, RoomMediaSerializer, PostSerializer
-from mfhouse.utils import IsLandlord, IsRoomOwner
+from mfhouse.permissions import IsLandlord, IsRoomOwner
 # Create your views here.
 class HouseViewSet(viewsets.ModelViewSet):
     queryset = House.objects.all()

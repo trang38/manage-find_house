@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import mfhouse.utils
+import mfhouse.permissions
 
 
 class Migration(migrations.Migration):
@@ -22,14 +22,14 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('full_name', models.CharField(max_length=800)),
                 ('bio', models.CharField(blank=True, max_length=1000, null=True)),
-                ('image', models.ImageField(default='default.jpg', upload_to=mfhouse.utils.PathAndRename('user_images'))),
+                ('image', models.ImageField(default='default.jpg', upload_to=mfhouse.permissions.PathAndRename('user_images'))),
                 ('address_detail', models.CharField(blank=True, max_length=255, null=True)),
                 ('phone_number', models.CharField(blank=True, max_length=20, null=True)),
                 ('national_id', models.CharField(blank=True, max_length=20, null=True)),
                 ('national_id_date', models.DateField(blank=True, null=True)),
                 ('national_id_address', models.CharField(blank=True, max_length=255, null=True)),
-                ('id_front_image', models.ImageField(blank=True, null=True, upload_to=mfhouse.utils.PathAndRename('id_cards'))),
-                ('id_back_image', models.ImageField(blank=True, null=True, upload_to=mfhouse.utils.PathAndRename('id_cards'))),
+                ('id_front_image', models.ImageField(blank=True, null=True, upload_to=mfhouse.permissions.PathAndRename('id_cards'))),
+                ('id_back_image', models.ImageField(blank=True, null=True, upload_to=mfhouse.permissions.PathAndRename('id_cards'))),
                 ('bank_name', models.CharField(blank=True, max_length=255, null=True)),
                 ('bank_account', models.CharField(blank=True, max_length=255, null=True)),
                 ('bank_branch', models.CharField(blank=True, max_length=255, null=True)),

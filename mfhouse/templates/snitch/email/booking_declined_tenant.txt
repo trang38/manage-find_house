@@ -1,0 +1,7 @@
+Xin chào {{ recipient.info.full_name }},
+
+Yêu cầu đặt phòng {{ target.room_name }} của bạn tại nhà {{ target.house.name }}, địa chỉ: {{ target.house.address_detail }}, {{ target.house.ward }}, {{ target.house.district }}, {{ target.house.city }} đã bị từ chối.
+
+Vui lòng đăng nhập để xem chi tiết và bạn có thể tìm phòng mới phù hợp hơn.
+
+Trân trọng!

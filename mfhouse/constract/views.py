@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import viewsets, permissions
 
-from mfhouse.utils import CannotDeleteCompletedContract, IsLandlord
+from mfhouse.permissions import CannotDeleteCompletedContract, IsLandlord
 from .models import Contract
 from .serializers import ContractSerializer
 from rest_framework.exceptions import ValidationError

@@ -1,0 +1,7 @@
+Xin chào {{ recipient.info.full_name }},
+
+Bạn đã chấp nhận yêu cầu đặt phòng {{ target.room_name }} của khách hàng {{ actor.user_name }} tại nhà {{ target.house.name }}, địa chỉ: {{ target.house.address_detail }}, {{ target.house.ward }}, {{ target.house.district }}, {{ target.house.city }}.
+
+Vui lòng đăng nhập để xem chi tiết và hoàn thành hợp đồng thuê phòng.
+
+Trân trọng!

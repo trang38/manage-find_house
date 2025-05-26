@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import viewsets, permissions
 
-from mfhouse.utils import CannotDeletePay
+from mfhouse.permissions import CannotDeletePay
 from .models import Payment, Refund
 from .serializers import PaymentSerializer, RefundSerializer
 

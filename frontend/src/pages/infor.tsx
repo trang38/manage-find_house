@@ -107,7 +107,7 @@ const CurrentUserProfile: React.FC = () => {
   const { infor } = user;
 
   return (
-    <div className="max-w-xl mx-auto p-4">
+    <div className="max-w-xl mx-auto p-4 min-h-[calc(100vh-15.88rem)] mt-[4rem]">
       <h1 className="text-2xl font-bold mb-4">Thông tin</h1>
       {editing ? (
         <form onSubmit={handleSubmit} className="space-y-4">

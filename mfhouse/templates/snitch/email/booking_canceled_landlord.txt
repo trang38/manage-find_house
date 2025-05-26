@@ -1,0 +1,7 @@
+Xin chào {{ recipient.info.full_name }},
+
+Khách hàng {{ actor }} đã hủy bỏ yêu cầu đặt phòng {{ target.room_name }} tại nhà {{ target.house.name }}, địa chỉ: {{ target.house.address_detail }}, {{ target.house.ward }}, {{ target.house.district }}, {{ target.house.city }}.
+
+Vui lòng đăng nhập để xem chi tiết.
+
+Trân trọng!

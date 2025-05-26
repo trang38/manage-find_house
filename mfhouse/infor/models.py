@@ -5,7 +5,7 @@ from allauth.account.signals import user_signed_up
 from django.dispatch import receiver
 from vi_address.models import City, District, Ward
 
-from mfhouse.utils import PathAndRename
+from mfhouse.permissions import PathAndRename
 # Create your models here.
 
 class Infor(models.Model):

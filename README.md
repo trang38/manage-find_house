@@ -13,3 +13,8 @@ in cmd:
 
 ## fix:
 lỗi trong trang signup: mật khẩu quá ngắn, cần đặt sao cho mật khâur tối thiểu 8 ký tự
+
+
+## redis
+redis-server //
+redis-cli ping
