@@ -14,7 +14,7 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = [
             'created_at', 'updated_at', 'completed_at', 'status',
-            'landlord', 'tenant', 'data', 'booking'
+            'landlord', 'tenant', 'data', 'booking', 'end_at'
         ]
         
     def create(self, validated_data):

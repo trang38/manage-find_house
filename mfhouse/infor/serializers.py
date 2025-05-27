@@ -2,8 +2,12 @@ from rest_framework import serializers
 
 from infor.models import Infor
 from django.contrib.auth.models import User
+from vi_address.models import City, District, Ward
 
 class InforSerializer(serializers.ModelSerializer):
+    city = serializers.PrimaryKeyRelatedField(queryset=City.objects.all(), required=False, allow_null=True)
+    district = serializers.PrimaryKeyRelatedField(queryset=District.objects.all(), required=False, allow_null=True)
+    ward = serializers.PrimaryKeyRelatedField(queryset=Ward.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Infor

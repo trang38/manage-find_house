@@ -17,6 +17,7 @@ class CurrentUserAPIView(APIView):
         return Response(serializer.data)
     
     def put(self, request):
+        print("Request data:", request.data)
         infor = request.user.infor
         serializer = InforSerializer(infor, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():

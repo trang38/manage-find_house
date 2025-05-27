@@ -13,7 +13,7 @@ export default function LogoutButton() {
     },
   });
   return (
-    <Button onClick={() => mutate()} variant="contained">
+    <Button onClick={() => mutate()} variant="contained" className="!bg-[#00b14f] w-fit">
       Đăng xuất
     </Button>
   );

@@ -12,9 +12,13 @@ in cmd:
     git push -u origin main
 
 ## fix:
-lỗi trong trang signup: mật khẩu quá ngắn, cần đặt sao cho mật khâur tối thiểu 8 ký tự
+lỗi trong trang signup: mật khẩu quá ngắn, cần đặt sao cho mật khâur tối thiểu 8 ký tự. //
+thêm các field để update infor //
+thêm page cho view infor of public user //
+
 
 
 ## redis
 redis-server //
-redis-cli ping
+redis-cli ping //
+redis-server --service-stop 

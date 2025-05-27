@@ -10,8 +10,11 @@ from book.models import Booking
 class Contract(models.Model):
     STATUS = [
         ('creating', 'Đang tạo hợp đồng'),
+        # ('waiting_tenant', 'Chờ tenant xác nhận'),
+        # ('waiting_landlord', 'Chờ landlord xác nhận'),
+        ('canceled', 'Hủy hợp đồng'),
         ('completed', 'Hoàn thành'),
-        ('canceled', 'Hủy hợp đồng')
+        ('end', 'Kết thúc hợp đồng')
     ]
     booking = models.OneToOneField(Booking, on_delete=models.SET_NULL, null=True, blank=True, related_name='contract')
     room = models.ForeignKey(
@@ -24,8 +27,11 @@ class Contract(models.Model):
     
     landlord_completed = models.BooleanField(default=False)  # Landlord đã điền thông tin
     tenant_completed = models.BooleanField(default=False)  # Tenant đã điền thông tin
-    revision_requested = models.BooleanField(default=False)
+    landlord_confirm = models.BooleanField(default=False) # landlord xác nhận thôg tin của tenant ok hết
+    revision_requested_lanlord = models.BooleanField(default=False) # landlord yêu cầu tenant sửa hợp đồng
+    revision_requested_tenant = models.BooleanField(default=False) # tenant yêu cầu landlord sửa hợp đồng
     revision_reason = models.TextField(null=True, blank=True)
+
     # terms and duration of contract
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
@@ -37,16 +43,24 @@ class Contract(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    end_at = models.DateTimeField(null=True, blank=True) # ngày kết thúc hợp đồng thực tế
     status = models.CharField(max_length=20, choices=STATUS, default='creating')
     data = models.JSONField(default=dict, blank=True)
 
     def clean(self):
         # Chặn update khi đã completed
-        if self.completed_at is not None:
-            if self.pk:
-                old = Contract.objects.get(pk=self.pk)
-                if old.completed_at is not None:
-                    raise ValidationError("Contract đã hoàn thành, không thể cập nhật.")
+        # if self.completed_at is not None:
+        if self.pk:
+            old = Contract.objects.get(pk=self.pk)
+            if old.completed_at is not None:
+                raise ValidationError("Contract đã hoàn thành, không thể cập nhật.")
+            # Chặn sửa nếu đã bị hủy
+            if old.status == 'canceled':
+                raise ValidationError("Hợp đồng đã bị hủy, không thể cập nhật.")
+
+            # Chặn sửa nếu đã kết thúc hợp đồng sớm
+            if old.status == 'end':
+                raise ValidationError("Hợp đồng đã bị chấm dứt, không thể cập nhật.")
     def save(self, *args, **kwargs):
         if self.booking:
             if not self.room:
@@ -58,6 +72,7 @@ class Contract(models.Model):
         is_completed_now = (
             self.landlord_completed and
             self.tenant_completed and
+            self.landlord_confirm and
             not self.completed_at
         )
 
@@ -145,4 +160,6 @@ class Contract(models.Model):
             return False
         today = date.today()
         remaining_days = (self.end_date - today).days
+        if remaining_days == 0:
+            self.status = 'end'
         return remaining_days == 30 or remaining_days == 7
