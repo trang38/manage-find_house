@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'snitch', # add django-snitch
     
 ]
-
+SITE_ID = 1
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -112,7 +112,7 @@ DATABASES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'manage_house',
+        'NAME': 'mfh',
         'USER': 'root',
         'HOST': 'localhost',
     }

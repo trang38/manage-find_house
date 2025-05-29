@@ -9,6 +9,7 @@ import Header from "./components/header";
 import Home from "./pages/home";
 import CurrentUserProfile from "./pages/infor";
 import Footer from "./components/footer";
+import ManageHouse from "./pages/manage_house";
 
 function Initializer() {
   const { isLoading } = useAuthSessionQuery();
@@ -47,6 +48,7 @@ export default function App() {
             <Route index element={<CrudBody />} />
             <Route path="app" element={<Home />} />
             <Route path="profile/me" element={<CurrentUserProfile />} />
+            <Route path="manage-house" element={<ManageHouse />} />
           {/* </Route> */}
       </Routes>
       <Footer />

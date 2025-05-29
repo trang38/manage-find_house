@@ -11,7 +11,10 @@ class HouseViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
+        
+    def get_queryset(self):
+        user = self.request.user
+        return House.objects.filter(owner=user)
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
