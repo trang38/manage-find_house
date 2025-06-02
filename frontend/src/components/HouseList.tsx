@@ -2,23 +2,9 @@ import { useEffect, useState } from "react";
 import { getCSRFToken } from "../utils/cookies";
 import axios from "axios";
 import GoongMap from "./GoongMap";
-
-interface House {
-  id: number;
-  name: string;
-  city: number | null;
-  district: number | null;
-  ward: number | null;
-  address_detail: string | null;
-  num_floors: number;
-  rooms_per_floor: number;
-  created_at: string;
-  updated_at: string;
-  owner: string;
-}
-type City = { id: number; name: string };
-type District = { id: number; name: string; parent_code_id: number };
-type Ward = { id: number; name: string; parent_code_id: number; path_with_type: string };
+import HouseForm from "./HouseForm";
+import { City, District, House, Ward } from "./interface_type";
+import { Link } from "react-router-dom";
 
 const csrftoken = getCSRFToken();
 const geocodeAddress = async (address: string) => {
@@ -40,13 +26,23 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
   const [reload, setReload] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  
+  const [editingHouse, setEditingHouse] = useState<House | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+
   const [citiesMap, setCitiesMap] = useState<Record<number, string>>({});
   const [districtsMap, setDistrictsMap] = useState<Record<number, string>>({});
   const [wardsMap, setWardsMap] = useState<Record<number, string>>({});
   const [coordinatesMap, setCoordinatesMap] = useState<Record<number, { lat: number, lng: number }>>({});
 
+  const handleEdit = (house: House) => {
+    setEditingHouse(house);
+    setShowEditForm(true);
+  };
 
+  const handleCloseForm = () => {
+    setEditingHouse(null);
+    setShowEditForm(false);
+  };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa nhà trọ này?")) return;
@@ -152,34 +148,59 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
   return (
     <div>
       {houses.length === 0 && <p>Chưa có nhà trọ.</p>}
+      {/* {showEditForm && editingHouse && (
+        <HouseForm
+          initialData={editingHouse}
+          onClose={handleCloseForm}
+          onSuccess={() => {
+            // Refresh danh sách nhà trọ sau khi chỉnh sửa thành công
+          }}
+          mode="edit"
+        />
+      )} */}
       <ul className="flex flex-col gap-[2rem]">
         {houses.map(house => (
           <li key={house.id}>
             <div className="flex flex-row gap-[0.8rem] items-center mb-[1rem]">
-              <p className="font-bold text-[#228B22]">{house.name}</p>
+              <Link to={`/houses/${house.id}/rooms`} className="font-bold text-[#228B22] hover:underline">{house.name}</Link>
+              <button onClick={() => handleEdit(house)} className="w-[1rem]">
+                <img src={process.env.PUBLIC_URL + 'update.png'} alt="Chỉnh sửa" />
+              </button>
               <button onClick={() => handleDelete(house.id)} className="w-[1rem]"><img src={process.env.PUBLIC_URL + 'delete.png'} alt="" /></button>
             </div>
-            <div>
-              <p>
-                <strong className="font-medium">Tổng số phòng: </strong>
-                {house.num_floors * house.rooms_per_floor}
-              </p>
-              <p>
-                <strong className="font-medium">Địa chỉ:  </strong>
-                {house.address_detail ? house.address_detail + ', ' : ''}
-                {house.ward ? wardsMap[house.ward] : ''}
-                {/* , {house.district ? districtsMap[house.district] : ''}, {house.city ? citiesMap[house.city] : ''} */}
-              </p>
-              {coordinatesMap[house.id] && (
-                <div className="aspect-video w-[50%] max-md:w-[100%] mt-[0.8rem]">
-                  <GoongMap
-                    latitude={coordinatesMap[house.id].lat}
-                    longitude={coordinatesMap[house.id].lng}
-                    markerText={house.name}
-                  />
-                </div>
-              )}
-            </div>
+            {showEditForm && editingHouse && editingHouse.id === house.id ? (
+              <HouseForm
+                initialData={editingHouse}
+                onClose={handleCloseForm}
+                onSuccess={() => {
+                  setReload(prev => !prev);
+                  handleCloseForm();
+                }}
+                mode="edit"
+              />
+            ) : (
+              <div>
+                <p>
+                  <strong className="font-medium">Tổng số phòng: </strong>
+                  {house.num_floors * house.rooms_per_floor}
+                </p>
+                <p>
+                  <strong className="font-medium">Địa chỉ:  </strong>
+                  {house.address_detail ? house.address_detail + ', ' : ''}
+                  {house.ward ? wardsMap[house.ward] : ''}
+                </p>
+                {coordinatesMap[house.id] && (
+                  <div className="aspect-video w-[50%] max-md:w-[100%] mt-[0.8rem]">
+                    <GoongMap
+                      latitude={coordinatesMap[house.id].lat}
+                      longitude={coordinatesMap[house.id].lng}
+                      markerText={house.name}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
           </li>
         ))}
       </ul>

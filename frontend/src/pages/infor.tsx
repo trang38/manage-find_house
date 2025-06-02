@@ -174,13 +174,14 @@ const CurrentUserProfile: React.FC = () => {
     axios.put(`${process.env.REACT_APP_API_URL}/api/users/me/`, data, {
       withCredentials: true,
       headers: {
-        'Content-Type': 'multipart/form-data',
+        // 'Content-Type': 'multipart/form-data',
         'X-CSRFToken': csrftoken || '',
       },
     })
       .then(res => {
         setUser(prev => prev ? { ...prev, infor: res.data } : null);
         setEditing(false);
+        window.location.reload();
       })
       .catch(err => {
         console.error('Error updating user', err);

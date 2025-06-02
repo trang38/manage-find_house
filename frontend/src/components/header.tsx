@@ -15,23 +15,30 @@ export default function Header() {
 
   console.log(authData);
 
-  useEffect(() => {
-    if (authData?.isAuthenticated) {
-      setLoading(true); // Đảm bảo trạng thái loading được bật lại
-
-      axios.get(`${process.env.REACT_APP_API_URL}/api/users/me/`, {
-        withCredentials: true
-      })
-        .then(res => {
-          console.log("User data:", res.data);
-          setUser(res.data);
-        })
-        .catch(err => {
-          console.error('Error fetching user', err);
-        })
-        .finally(() => setLoading(false));
+  const fetchUser = async () => {
+    if (!authData?.isAuthenticated) {
+      setUser(null);
+      setLoading(false);
+      return;
     }
-  }, [authData, location.pathname]);
+
+    setLoading(true);
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/me/`, {
+        withCredentials: true,
+      });
+      setUser(res.data);
+    } catch (err) {
+      console.error("Error fetching user", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, [authData, location.pathname, location.key]);
+
   const isAuthenticated = authData?.isAuthenticated;
   const isLandlord = user?.infor?.role === "landlord";
   return (

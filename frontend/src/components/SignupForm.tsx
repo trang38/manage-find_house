@@ -31,7 +31,7 @@ export default function SignupForm() {
     mutate({ email, password, username });
   }
   return (
-    <Container component="section" maxWidth="xs">
+    <Container component="section" maxWidth="xs" className="mt-[7rem]">
       <Box
         sx={{
           marginTop: 8,

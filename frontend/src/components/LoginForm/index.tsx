@@ -32,7 +32,7 @@ export default function LoginForm() {
     mutate({ email, password });
   }
   return (
-    <Container component="section" maxWidth="xs">
+    <Container component="section" maxWidth="xs" className="mt-[7rem]">
       <Box
         sx={{
           marginTop: 8,
