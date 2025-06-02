@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getCSRFToken } from "../utils/cookies";
 import axios from "axios";
+import GoongMap from "./GoongMap";
 
 interface House {
   id: number;
@@ -17,17 +18,52 @@ interface House {
 }
 type City = { id: number; name: string };
 type District = { id: number; name: string; parent_code_id: number };
-type Ward = { id: number; name: string; parent_code_id: number };
+type Ward = { id: number; name: string; parent_code_id: number; path_with_type: string };
 
 const csrftoken = getCSRFToken();
-const HousesList: React.FC = () => {
+const geocodeAddress = async (address: string) => {
+  const res = await fetch(
+    `https://rsapi.goong.io/Geocode?address=${encodeURIComponent(address)}&api_key=${process.env.REACT_APP_GOONG_MAPS_API_KEY}`
+  );
+  const data = await res.json();
+  if (data.results && data.results.length > 0) {
+    return {
+      lat: data.results[0].geometry.location.lat,
+      lng: data.results[0].geometry.location.lng,
+    };
+  }
+  throw new Error('Không tìm thấy vị trí');
+};
 
+const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
   const [houses, setHouses] = useState<House[]>([]);
+  const [reload, setReload] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
+
+  
   const [citiesMap, setCitiesMap] = useState<Record<number, string>>({});
   const [districtsMap, setDistrictsMap] = useState<Record<number, string>>({});
   const [wardsMap, setWardsMap] = useState<Record<number, string>>({});
+  const [coordinatesMap, setCoordinatesMap] = useState<Record<number, { lat: number, lng: number }>>({});
 
+
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa nhà trọ này?")) return;
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/houses/${id}/`, {
+        headers: {
+          'X-CSRFToken': csrftoken || '',
+        },
+        withCredentials: true,
+      });
+      alert("Đã xóa nhà trọ.");
+      setReload(prev => !prev);
+    } catch (error) {
+      console.error("Lỗi khi xóa:", error);
+      alert("Không thể xóa nhà trọ.");
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -74,7 +110,8 @@ const HousesList: React.FC = () => {
         }
         wardsData = wardsData.filter(w => wardIds.includes(w.id));
         const wardsMapTemp: Record<number, string> = {};
-        wardsData.forEach(w => { wardsMapTemp[w.id] = w.name; });
+        // wardsData.forEach(w => { wardsMapTemp[w.id] = w.name; });
+        wardsData.forEach(w => { wardsMapTemp[w.id] = w.path_with_type; });
         setWardsMap(wardsMapTemp);
 
         setLoading(false);
@@ -85,29 +122,63 @@ const HousesList: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [refresh, reload]);
+
+  useEffect(() => {
+    const fetchCoordinates = async () => {
+      if (houses.length === 0 || Object.keys(wardsMap).length === 0 || Object.keys(districtsMap).length === 0 || Object.keys(citiesMap).length === 0) return;
+
+      const coordsMapTemp: Record<number, { lat: number, lng: number }> = {};
+
+      await Promise.all(houses.map(async (house) => {
+        // const fullAddress = `${house.address_detail ? house.address_detail + ', ' : ''}${house.ward ? wardsMap[house.ward] + ', ' : ''}${house.district ? districtsMap[house.district] + ', ' : ''}${house.city ? citiesMap[house.city] : ''}`;
+        const fullAddress = `${house.address_detail ? house.address_detail + ', ' : ''}${house.ward ? wardsMap[house.ward] : ''}`;
+        try {
+          const coords = await geocodeAddress(fullAddress);
+          coordsMapTemp[house.id] = coords;
+        } catch (error) {
+          console.warn(`Không lấy được tọa độ cho nhà trọ ${house.name}`);
+        }
+      }));
+
+      setCoordinatesMap(coordsMapTemp);
+    };
+
+    fetchCoordinates();
+  }, [houses, wardsMap, districtsMap, citiesMap]);
 
   if (loading) return <div>Loading houses...</div>;
 
   return (
     <div>
-      {houses.length === 0 && <p>No houses found.</p>}
+      {houses.length === 0 && <p>Chưa có nhà trọ.</p>}
       <ul className="flex flex-col gap-[2rem]">
         {houses.map(house => (
           <li key={house.id}>
-            <p className="font-bold text-[#228B22] mb-[1rem]">{house.name}</p>
+            <div className="flex flex-row gap-[0.8rem] items-center mb-[1rem]">
+              <p className="font-bold text-[#228B22]">{house.name}</p>
+              <button onClick={() => handleDelete(house.id)} className="w-[1rem]"><img src={process.env.PUBLIC_URL + 'delete.png'} alt="" /></button>
+            </div>
             <div>
               <p>
-              <strong className="font-medium">Địa chỉ:  </strong>
-              {house.address_detail ? house.address_detail + ', ' : ''}
-              {house.ward ? wardsMap[house.ward] : ''}, {house.district ? districtsMap[house.district] : ''}, {house.city ? citiesMap[house.city] : ''}
+                <strong className="font-medium">Tổng số phòng: </strong>
+                {house.num_floors * house.rooms_per_floor}
               </p>
               <p>
-              <strong className="font-medium">Số tầng:  </strong>{house.num_floors}
+                <strong className="font-medium">Địa chỉ:  </strong>
+                {house.address_detail ? house.address_detail + ', ' : ''}
+                {house.ward ? wardsMap[house.ward] : ''}
+                {/* , {house.district ? districtsMap[house.district] : ''}, {house.city ? citiesMap[house.city] : ''} */}
               </p>
-              <p>
-              <strong className="font-medium">Số phòng trên 1 tầng:  </strong>{house.rooms_per_floor}
-              </p>
+              {coordinatesMap[house.id] && (
+                <div className="aspect-video w-[50%] max-md:w-[100%] mt-[0.8rem]">
+                  <GoongMap
+                    latitude={coordinatesMap[house.id].lat}
+                    longitude={coordinatesMap[house.id].lng}
+                    markerText={house.name}
+                  />
+                </div>
+              )}
             </div>
           </li>
         ))}

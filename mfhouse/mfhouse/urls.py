@@ -53,7 +53,8 @@ urlpatterns = [
     path('api/users/me/', CurrentUserAPIView.as_view(), name='user-current'),
     path('api/users/<str:username>', PublicUserAPIView.as_view(), name='user-public'),
     path('api/users/search/', SearchUserAPIView.as_view(), name='user-search'),
-    path('websocket-notifications/', include('websocket_notifications.urls', namespace='websocket_notifications')) # add api of websocket-notifications
+    #  path('api/houses/<int:house_id>/rooms/', RoomsByHouseView.as_view(), name='rooms-by-house'),
+    # path('websocket-notifications/', include('websocket_notifications.urls', namespace='websocket_notifications')) # add api of websocket-notifications to check
 ]
 urlpatterns +=static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

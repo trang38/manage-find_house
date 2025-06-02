@@ -3,41 +3,9 @@ import { useAuthSessionQuery } from "../django-allauth/sessions/hooks";
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { User } from "./interface_type";
 
-type City = { id: number; name: string };
-type District = { id: number; name: string };
-type Ward = { id: number; name: string };
 
-interface Infor {
-  id: number;
-  full_name: string;
-  bio?: string;
-  image: File | string;
-  city?: City;
-  district?: District;
-  ward?: Ward;
-  address_detail?: string;
-  phone_number?: string;
-  national_id?: string;
-  national_id_date?: string;
-  national_id_address?: string;
-  id_front_image?: File | string;
-  id_back_image?: File | string;
-  bank_name?: string;
-  bank_account?: string;
-  bank_account_name?: string;
-  show_bio: boolean;
-  show_phone_number: boolean;
-  show_address: boolean;
-  role: string;
-}
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  infor: Infor;
-}
 
 export default function Header() {
   const { data: authData, isLoading: authLoading } = useAuthSessionQuery();
@@ -49,6 +17,8 @@ export default function Header() {
 
   useEffect(() => {
     if (authData?.isAuthenticated) {
+      setLoading(true); // Đảm bảo trạng thái loading được bật lại
+
       axios.get(`${process.env.REACT_APP_API_URL}/api/users/me/`, {
         withCredentials: true
       })
@@ -61,7 +31,7 @@ export default function Header() {
         })
         .finally(() => setLoading(false));
     }
-  }, [authData]);
+  }, [authData, location.pathname]);
   const isAuthenticated = authData?.isAuthenticated;
   const isLandlord = user?.infor?.role === "landlord";
   return (
@@ -96,7 +66,7 @@ export default function Header() {
         </div>
       </div>
       <div>
-        {authLoading ? (
+        {/* {authLoading ? (
           <span>Loading...</span>
         ) : authData?.isAuthenticated ? (
           <div className="flex flex-row gap-[1.5rem] items-center">
@@ -122,6 +92,23 @@ export default function Header() {
           <Link to="/auth/login" className={location.pathname === "/auth/login" ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
             Login
           </Link>
+        )} */}
+        {(authLoading || loading) ? (
+          <span>Loading...</span>
+        ) : authData?.isAuthenticated ? (
+          <div className="flex flex-row gap-[1.5rem] items-center">
+            <Link to="" className={(location.pathname === "") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+              <img src={process.env.PUBLIC_URL + "/notification-bell.png"} className="w-[1.5rem] h-[1.5rem]" />
+            </Link>
+            <Link to="/profile/me" className={(location.pathname === "/profile/me") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+              <img src={process.env.PUBLIC_URL + "/messenger.png"} className="w-[1.5rem] h-[1.5rem]" />
+            </Link>
+            <Link to="/profile/me" className={(location.pathname === "/profile/me") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+              <img src={user?.infor?.image instanceof File ? URL.createObjectURL(user?.infor?.image) : user?.infor?.image} alt={user?.username} className="w-[1.8rem] h-[1.8rem] rounded-full object-cover" />
+            </Link>
+          </div>
+        ) : (
+          <Link to="/auth/login" className={(location.pathname === "/auth/login") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>Login</Link>
         )}
       </div>
     </div>

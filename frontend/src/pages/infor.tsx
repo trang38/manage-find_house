@@ -150,17 +150,23 @@ const CurrentUserProfile: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const data = new FormData();
+
     (Object.keys(formData) as (keyof Infor)[]).forEach((key) => {
       const value = formData[key];
+      if (
+        ['image', 'id_front_image', 'id_back_image'].includes(key) &&
+        typeof value === 'string'
+      ) {
+        return;
+      }
+
       if (value !== null && value !== undefined) {
-        if (
-          value instanceof File ||
-          (typeof value === 'string' && !['image', 'id_front_image', 'id_back_image'].includes(key)) ||
-          typeof value === 'number'
-        ) {
-          data.append(key, value.toString());
+        if (value instanceof File) {
+          data.append(key, value);
         } else if (typeof value === 'boolean') {
           data.append(key, value ? 'true' : 'false');
+        } else {
+          data.append(key, value.toString());
         }
       }
     });
