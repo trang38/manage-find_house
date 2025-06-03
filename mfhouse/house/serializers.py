@@ -4,12 +4,12 @@ from django.contrib.auth.models import User
 
 
 class HouseSerializer(serializers.ModelSerializer):
-    owner = serializers.StringRelatedField(read_only=True)
+    # owner = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = House
         fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'owner']
 
 
 class RoomMediaSerializer(serializers.ModelSerializer):
@@ -20,11 +20,23 @@ class RoomMediaSerializer(serializers.ModelSerializer):
 class RoomSerializer(serializers.ModelSerializer):
     media = RoomMediaSerializer(many=True, read_only=True)
     house = serializers.PrimaryKeyRelatedField(queryset=House.objects.all())
+    post_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
-        fields = '__all__'
-        read_only_fields = ['is_posted', 'updated_at']
+        fields = [field.name for field in Room._meta.fields] + ['media', 'post_id']
+        read_only_fields = ['updated_at']
+
+    def get_post_id(self, obj):
+        from .models import Post
+        post = Post.objects.filter(room=obj).first()
+        return post.id if post else None
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['house'] = HouseSerializer(instance.house).data
+        return rep
+    
 
 class PostSerializer(serializers.ModelSerializer):
     room = serializers.PrimaryKeyRelatedField(queryset=Room.objects.all())
@@ -33,3 +45,8 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at', 'is_active']
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['room'] = RoomSerializer(instance.room).data
+        return rep

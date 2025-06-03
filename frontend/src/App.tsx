@@ -6,7 +6,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import SignupForm from "./components/SignupForm";
 import Header from "./components/header";
-import Home from "./pages/home";
+import HomePage from "./pages/home";
 import CurrentUserProfile from "./pages/infor";
 import Footer from "./components/footer";
 import ManageHouse from "./pages/manage_house";
@@ -47,7 +47,7 @@ export default function App() {
           </Route>
           {/* <Route path="app" element={<PrivateRoute />}> */}
             <Route index element={<CrudBody />} />
-            <Route path="app" element={<Home />} />
+            <Route path="app" element={<HomePage />} />
             <Route path="profile/me" element={<CurrentUserProfile />} />
             <Route path="manage-house" element={<ManageHouse />} />
             <Route path="houses/:id/rooms" element={<RoomsInHouse />} />

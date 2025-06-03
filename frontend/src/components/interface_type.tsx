@@ -54,6 +54,12 @@ export interface House {
   rooms_per_floor: number;
   created_at: string;
   updated_at: string;
-  owner: string;
+  owner: number;
 }
 
+export type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};

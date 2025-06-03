@@ -7,7 +7,7 @@ import { City, District, House, Ward } from "./interface_type";
 import { Link } from "react-router-dom";
 
 const csrftoken = getCSRFToken();
-const geocodeAddress = async (address: string) => {
+export const geocodeAddress = async (address: string) => {
   const res = await fetch(
     `https://rsapi.goong.io/Geocode?address=${encodeURIComponent(address)}&api_key=${process.env.REACT_APP_GOONG_MAPS_API_KEY}`
   );
@@ -72,6 +72,7 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
           },
         });
         const housesData = housesRes.data;
+        console.log("housesRes.data:", housesRes.data);
         setHouses(housesData);
 
         // 2. Lấy danh sách id city, district, ward duy nhất
@@ -161,13 +162,14 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
       <ul className="flex flex-col gap-[2rem]">
         {houses.map(house => (
           <li key={house.id}>
-            <div className="flex flex-row gap-[0.8rem] items-center mb-[1rem]">
-              <Link to={`/houses/${house.id}/rooms`} className="font-bold text-[#228B22] hover:underline">{house.name}</Link>
+            <div className="flex flex-row gap-[0.8rem] items-center">
+              <Link to={`/houses/${house.id}/rooms`} className="font-bold text-[#228B22] hover:underline text-[1.2rem]">{house.name}</Link>
               <button onClick={() => handleEdit(house)} className="w-[1rem]">
                 <img src={process.env.PUBLIC_URL + 'update.png'} alt="Chỉnh sửa" />
               </button>
               <button onClick={() => handleDelete(house.id)} className="w-[1rem]"><img src={process.env.PUBLIC_URL + 'delete.png'} alt="" /></button>
             </div>
+            <p className="text-[#cccccc] text-[0.8rem]">Tạo lúc: {house.created_at}  |  Cập nhật: {house.updated_at}</p>
             {showEditForm && editingHouse && editingHouse.id === house.id ? (
               <HouseForm
                 initialData={editingHouse}
@@ -179,7 +181,7 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
                 mode="edit"
               />
             ) : (
-              <div>
+              <div className="mt-[1rem]">
                 <p>
                   <strong className="font-medium">Tổng số phòng: </strong>
                   {house.num_floors * house.rooms_per_floor}

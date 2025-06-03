@@ -50,7 +50,7 @@ export default function Header() {
 
           {isLandlord && (
             <div className="flex flex-row gap-[1.5rem]">
-              <Link to="/manage-house" className={(location.pathname === "/manage-house") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+              <Link to="/manage-house" className={(location.pathname.startsWith("/manage-house") || location.pathname.startsWith("/houses")) ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
                 Quản lý phòng
               </Link>
             </div>

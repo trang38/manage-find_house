@@ -199,7 +199,7 @@ const CurrentUserProfile: React.FC = () => {
   const wardName = wards.find(w => w.id === infor.ward)?.name || '';
 
   return (
-    <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] mt-[7rem] mb-[3rem]">
+    <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem]">
       <div className="flex items-center justify-center">
         <h1 className="text-2xl font-bold mb-4 text-[#006400]">Thông tin</h1>
       </div>
