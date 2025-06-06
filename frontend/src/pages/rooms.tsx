@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import clsx from 'clsx';
 import RoomModal from '../components/RoomModal';
 import { getCSRFToken } from '../utils/cookies';
@@ -27,6 +27,7 @@ const statusColors: Record<string, string> = {
 const csrftoken = getCSRFToken();
 
 const RoomsByHousePage = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   console.log('id:', id);
   const [house, setHouse] = useState<House | null>(null);
@@ -144,9 +145,9 @@ const RoomsByHousePage = () => {
   };
 
   return (
-    <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] mt-[7rem] mb-[3rem]">
+    <div className="mx-auto max-w-[1000px] max-md:max-w-[100%] max-lg:px-[1rem] min-h-[calc(100vh-15.88rem)] mt-[7rem] mb-[3rem]">
       <h2 className="text-2xl font-semibold text-[#228B22]">{house?.name}</h2>
-      <p className="mb-4 text-[#cccccc] text-[0.8rem]">Tạo lúc: {house?.created_at}  |  Cập nhật: {house?.updated_at}</p>
+      <p className="mb-4 text-gray-300 text-[0.8rem]">Tạo lúc: {house?.created_at.split('T')[0]} {house?.created_at.split('T')[1].slice(0, 5)} |  Cập nhật: {house?.updated_at.split('T')[0]} {house?.updated_at.split('T')[1].slice(0, 5)}</p>
 
       <div className="overflow-auto">
         <table className="border-collapse border w-fit">
@@ -176,6 +177,12 @@ const RoomsByHousePage = () => {
           />
         </div>
       )}
+      <button
+        onClick={() => navigate('/manage-house')}
+        className="mb-4 px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm text-gray-800 mt-[3rem]"
+      >
+        ← Quay lại danh sách nhà trọ
+      </button>
     </div>
   );
 };

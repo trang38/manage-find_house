@@ -46,7 +46,7 @@ class Room(models.Model):
     room_name = models.CharField(max_length=50)   # Ví dụ: 101, 201...
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES, default="1")
 
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.IntegerField()
     is_available = models.BooleanField(default=True)
 
     deposit = models.IntegerField(null=True, blank=True)
@@ -55,7 +55,7 @@ class Room(models.Model):
     service_price = models.IntegerField(null=True, blank=True)
 
     area = models.DecimalField(max_digits=6, decimal_places=2)
-    amenities = models.CharField(max_length=255)
+    amenities = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(blank=True)
 
     is_posted = models.BooleanField(default=False)

@@ -29,6 +29,7 @@ from review.views import RatingViewSet, RoomFeedbackViewSet
 from websocket_notifications.api.rest_framework import NotificationGroupViewSet
 
 
+
 router = DefaultRouter()
 router.register(r'houses', HouseViewSet)
 router.register(r'rooms', RoomViewSet)
@@ -53,8 +54,13 @@ urlpatterns = [
     path('api/users/me/', CurrentUserAPIView.as_view(), name='user-current'),
     path('api/users/<str:username>', PublicUserAPIView.as_view(), name='user-public'),
     path('api/users/search/', SearchUserAPIView.as_view(), name='user-search'),
+    # path('api/posts/filter/', PostListView.as_view(), name='post-filter'),
     #  path('api/houses/<int:house_id>/rooms/', RoomsByHouseView.as_view(), name='rooms-by-house'),
     # path('websocket-notifications/', include('websocket_notifications.urls', namespace='websocket_notifications')) # add api of websocket-notifications to check
 ]
 urlpatterns +=static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+# for url in router.urls:
+#     print(f"{url.pattern} => {url.name}")

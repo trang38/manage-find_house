@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getCSRFToken } from '../utils/cookies';
+import { House } from './interface_type';
 
 interface Room {
   id?: number;
   room_name: string;
   room_type?: string;
-  house: number;
+  house: number | House;
   price?: number;
   deposit?: number;
   electric?: number;
@@ -17,6 +18,7 @@ interface Room {
   description?: string;
   status?: string;
   is_posted?: boolean;
+  updated_at?:string;
   post_id?: number;
 }
 interface MediaItem {
@@ -27,7 +29,8 @@ interface MediaItem {
 
 interface Props {
   room: Room | null;
-  house: any;
+  // house: any;
+  house: House;
   onClose: () => void;
 }
 
@@ -38,7 +41,17 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
   // const [form, setForm] = useState<Room>({ ...room });
   const isEdit = !!room?.id;
 
-  const [form, setForm] = useState<Room>(() => room ? { ...room } : {
+  // const [form, setForm] = useState<Room>(() => room ? { ...room } : {
+  //   id: 0,
+  //   room_name: '',
+  //   status: 'available',
+  //   room_type: '',
+  //   house: house.id,
+  // });
+  const [form, setForm] = useState<Room>(() => room ? {
+    ...room,
+    house: typeof room.house === 'object' ? room.house.id : room.house
+  } : {
     id: 0,
     room_name: '',
     status: 'available',
@@ -53,7 +66,7 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: name === 'service_price' ? Number(value) : value, }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +88,8 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
   };
   const handleSubmit = async () => {
     try {
+      console.log(room);
+      console.log(form.house);
       const res = isEdit
         ? await axios.put(`${process.env.REACT_APP_API_URL}/api/rooms/${room.id}/`, form,
           {
@@ -153,9 +168,10 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
   const handlePost = async () => {
     if (room?.id && (room?.status === 'available' || room?.status === 'checkout_soon')) {
       await axios.post(`${process.env.REACT_APP_API_URL}/api/posts/`,
-        { room: room?.id, 
+        {
+          room: room?.id,
           title: postTitle || `Cho thuê ${room?.room_type}`
-         },
+        },
         {
           withCredentials: true,
           headers: {
@@ -208,34 +224,63 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-4 w-full max-w-2xl rounded relative  max-h-[calc(100vh-6.8rem)] overflow-auto mt-[2.8rem]">
         <button onClick={onClose} className="absolute top-2 right-2 text-xl">×</button>
-        <h3 className="text-xl font-bold mb-4 text-[#228B22]">{isEdit ? 'Cập nhật phòng' : 'Thêm phòng'}</h3>
-
+        <h3 className="text-xl font-bold text-[#228B22]">{isEdit ? 'Cập nhật phòng' : 'Thêm phòng'}</h3>
+        <p className=' mb-4 text-[0.8rem] text-gray-300'>Cập nhật: {room?.updated_at?.split('T')[0]} {room?.updated_at?.split('T')[1].slice(0,5)}</p>
         <div className="grid grid-cols-2 gap-4">
-          <input name="room_name" value={form.room_name} onChange={handleChange} placeholder="Tên phòng" className="border p-2" />
-          <select
-            name="room_type"
-            value={form.room_type || ''}
-            onChange={handleChange}
-            className="border p-2"
-          >
-            <option value="">Chọn loại phòng</option>
-            <option value="1">Phòng trọ</option>
-            <option value="2">Homestay</option>
-            <option value="3">Nhà nguyên căn</option>
-            <option value="4">Studio</option>
-            <option value="5">Chung cư mini</option>
-          </select>
+          <div>
+            <p className='text-[#006400]'>Tên phòng:</p>
+            <input name="room_name" value={form.room_name} onChange={handleChange} placeholder="Tên phòng" className="border p-2 w-full" />
+          </div>
+          <div>
+            <p className='text-[#006400]'>Loại phòng:</p>
+            <select
+              name="room_type"
+              value={form.room_type || ''}
+              onChange={handleChange}
+              className="border p-2 w-full"
+            >
+              <option value="">Chọn loại phòng</option>
+              <option value="1">Phòng trọ</option>
+              <option value="2">Homestay</option>
+              <option value="3">Nhà nguyên căn</option>
+              <option value="4">Studio</option>
+              <option value="5">Chung cư mini</option>
+            </select>
+          </div>
+          <div>
+            <p className='text-[#006400]'>Giá phòng:</p>
+            <input name="price" value={form.price || ''} onChange={handleChange} placeholder="Giá" type="number" className="border p-2 w-full" />
+          </div>
+          <div>
+            <p className='text-[#006400]'>Đặt cọc:</p>
+            <input name="deposit" value={form.deposit || ''} onChange={handleChange} placeholder="Tiền cọc" type="number" className="border p-2 w-full" />
+          </div>
+          <div>
+            <p className='text-[#006400]'>Tiền điện (vnđ/số):</p>
+            <input name="electric" value={form.electric || ''} onChange={handleChange} placeholder="Điện" type="number" className="border p-2 w-full" />
+          </div>
+          <div>
+            <p className='text-[#006400]'>Tiền nước:</p>
+            <input name="water" value={form.water || ''} onChange={handleChange} placeholder="Nước" className="border p-2 w-full" />
+          </div>
+          <div>
+            <p className='text-[#006400]'>Tiền dịch vụ:</p>
+            <input name="service_price" value={form.service_price || ''} onChange={handleChange} placeholder="Phí dịch vụ" type="number" className="border p-2 w-full" />
+          </div>
+          <div>
+            <p className='text-[#006400]'>Diện tích:</p>
+            <input name="area" value={form.area || ''} onChange={handleChange} placeholder="Diện tích" type="number" className="border p-2 w-full" />
+          </div>
+          <div>
+            <p className='text-[#006400]'>Tiện nghi:</p>
+            <input name="amenities" value={form.amenities || ''} onChange={handleChange} placeholder="Tiện ích" className="border p-2 w-full" />
+          </div>
+          <div></div>
 
-          <input name="price" value={form.price || ''} onChange={handleChange} placeholder="Giá" type="number" className="border p-2" />
-          <input name="deposit" value={form.deposit || ''} onChange={handleChange} placeholder="Tiền cọc" type="number" className="border p-2" />
-          <input name="electric" value={form.electric || ''} onChange={handleChange} placeholder="Điện" type="number" className="border p-2" />
-          <input name="water" value={form.water || ''} onChange={handleChange} placeholder="Nước" className="border p-2" />
-          <input name="service_price" value={form.service_price || ''} onChange={handleChange} placeholder="Phí dịch vụ" type="number" className="border p-2" />
-          <input name="area" value={form.area || ''} onChange={handleChange} placeholder="Diện tích" type="number" className="border p-2" />
-          <input name="amenities" value={form.amenities || ''} onChange={handleChange} placeholder="Tiện ích" className="border p-2" />
-          <textarea name="description" value={form.description || ''} onChange={handleChange} placeholder="Mô tả" className="border p-2 col-span-2" />
+            <p className='text-[#006400]'>Mô tả:</p>
+            <textarea name="description" value={form.description || ''} onChange={handleChange} placeholder="Mô tả" className="border p-2 col-span-2 h-[12rem]" />
 
-          <input type="file" multiple accept="image/*,video/*" onChange={handleFileChange} className="col-span-2 border p-2" />
+          <input type="file" multiple accept="image/*,video/*" onChange={handleFileChange} className="col-span-2 border p-2 w-full" />
         </div>
         <div className="grid grid-cols-3 gap-2 mt-4">
           {existingMedia.map((media) => (
@@ -247,9 +292,9 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
               )}
               <button
                 onClick={() => handleMediaDelete(media.id)}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                className="absolute top-1 right-1  w-[1rem] h-[1rem]"
               >
-                ×
+                <img src={process.env.PUBLIC_URL+'/icons8-delete-40.png'} alt="xóa" />
               </button>
             </div>
           ))}

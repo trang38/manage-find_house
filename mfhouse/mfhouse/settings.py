@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     'scheduler.apps.SchedulerConfig', # add cron job
     'websocket_notifications',  # add websocket-notifications package
     'snitch', # add django-snitch
-    
+    'django_filters',
 ]
 SITE_ID = 1
 MIDDLEWARE = [

@@ -9,7 +9,7 @@ const ManageHouse: React.FC = () => {
 
   const handleRefresh = () => setRefresh(prev => !prev);
   return (
-    <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] mt-[7rem] mb-[3rem]">
+    <div className="mx-auto max-w-[1000px] max-md:max-w-[100%] max-lg:px-[1rem] min-h-[calc(100vh-15.88rem)] mt-[7rem] mb-[3rem] ">
       <h1 className="text-2xl font-bold mb-4 text-[#228B22]">Quản lý nhà trọ</h1>
       <button
         onClick={() => setShowForm(true)}
