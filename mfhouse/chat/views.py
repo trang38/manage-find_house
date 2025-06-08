@@ -5,12 +5,13 @@ from rest_framework import generics
 from django.db.models import OuterRef, Subquery, Q
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from mfhouse.chat.models import Chat
-from mfhouse.chat.serializers import MessageSerializer
+from chat.models import Chat
+from chat.serializers import MessageSerializer
 from rest_framework.permissions import IsAuthenticated
 
 from infor.models import Infor
 from infor.serializers import InforSerializer
+
 class MyInbox(generics.ListAPIView):
     serializer_class = MessageSerializer
 
@@ -49,7 +50,7 @@ class SendMessages(generics.CreateAPIView):
 
 
 
-class ProfileDetail(generics.RetrieveUpdateAPIView):
-    serializer_class = InforSerializer
-    queryset = Infor.objects.all()
-    permission_classes = [IsAuthenticated] 
+# class ProfileDetail(generics.RetrieveUpdateAPIView):
+#     serializer_class = InforSerializer
+#     queryset = Infor.objects.all()
+#     permission_classes = [IsAuthenticated] 

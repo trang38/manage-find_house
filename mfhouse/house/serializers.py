@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 
 class HouseSerializer(serializers.ModelSerializer):
-    # owner = serializers.StringRelatedField(read_only=True)
+    owner = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = House

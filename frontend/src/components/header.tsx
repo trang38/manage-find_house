@@ -24,7 +24,7 @@ export default function Header() {
 
     setLoading(true);
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/me/`, {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/profile/me/`, {
         withCredentials: true,
       });
       setUser(res.data);
@@ -107,7 +107,7 @@ export default function Header() {
             <Link to="" className={(location.pathname === "") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
               <img src={process.env.PUBLIC_URL + "/notification-bell.png"} className="w-[1.5rem] h-[1.5rem]" />
             </Link>
-            <Link to="/profile/me" className={(location.pathname === "/profile/me") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+            <Link to="/chat" className={(location.pathname === "/chat") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
               <img src={process.env.PUBLIC_URL + "/messenger.png"} className="w-[1.5rem] h-[1.5rem]" />
             </Link>
             <Link to="/profile/me" className={(location.pathname === "/profile/me") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>

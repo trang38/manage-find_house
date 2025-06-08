@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
-from mfhouse.chat.models import Chat
+from chat.models import Chat
 from infor.serializers import InforSerializer
 
 class MessageSerializer(serializers.ModelSerializer):
-    receiver_profile = InforSerializer(read_only=True)
-    sender_profile = InforSerializer(read_only=True)
+    receiver_profile = InforSerializer(source='receiver.infor', read_only=True)
+    sender_profile = InforSerializer(source='sender.infor', read_only=True)
 
     class Meta:
         model = Chat

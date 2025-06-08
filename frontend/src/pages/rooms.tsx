@@ -4,18 +4,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import clsx from 'clsx';
 import RoomModal from '../components/RoomModal';
 import { getCSRFToken } from '../utils/cookies';
-import { House, Ward } from '../components/interface_type';
+import { House, Room, Ward } from '../components/interface_type';
 import { geocodeAddress } from '../components/HouseList';
 import GoongMap from '../components/GoongMap';
 
-interface Room {
-  id: number;
-  room_name: string;
-  status: string;
-  room_type: string;
-  house: number;
-  [key: string]: any;
-}
+// interface Room {
+//   id: number;
+//   room_name: string;
+//   status: string;
+//   room_type: string;
+//   house: number;
+//   [key: string]: any;
+// }
 
 
 const statusColors: Record<string, string> = {
@@ -130,7 +130,7 @@ const RoomsByHousePage = () => {
               </button>
             ) : (
               <button
-                onClick={() => openModal({ room_name: roomName, house: house.id } as Room)}
+                onClick={() => openModal({ room_name: roomName, house: house } as Room)}
                 className="w-full h-full p-6 rounded shadow border hover:bg-blue-100"
               >
                 + Thêm phòng

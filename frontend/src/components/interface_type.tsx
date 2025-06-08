@@ -1,3 +1,6 @@
+import axios from "axios";
+import { getCSRFToken } from "../utils/cookies";
+
 export type City = { 
   id?: number; 
   name: string 
@@ -17,9 +20,9 @@ export interface Infor {
   full_name: string;
   bio?: string;
   image: File | string;
-  city?: City;
-  district?: District;
-  ward?: Ward;
+  city?: number;
+  district?: number;
+  ward?: number;
   address_detail?: string;
   phone_number?: string;
   national_id?: string;
@@ -34,6 +37,7 @@ export interface Infor {
   show_phone_number: boolean;
   show_address: boolean;
   role: string;
+  user?:User;
 }
 
 export interface User {
@@ -46,15 +50,15 @@ export interface User {
 export interface House {
   id: number;
   name: string;
-  city: number | null;
-  district: number | null;
-  ward: number | null;
-  address_detail: string | null;
+  city: number;
+  district: number;
+  ward: number;
+  address_detail: string;
   num_floors: number;
   rooms_per_floor: number;
   created_at: string;
   updated_at: string;
-  owner: number;
+  owner: string;
 }
 
 export type PaginatedResponse<T> = {
@@ -62,4 +66,96 @@ export type PaginatedResponse<T> = {
   next: string | null;
   previous: string | null;
   results: T[];
+};
+
+export interface Room {
+  id?: number;
+  room_name: string;
+  room_type: string;
+  house: number | House;
+  price?: number;
+  deposit?: number;
+  electric?: number;
+  water?: string;
+  service_price?: number;
+  area?: number;
+  amenities?: string;
+  description?: string;
+  status: string;
+  is_posted?: boolean;
+  updated_at?:string;
+  post_id?: number;
+  media?: MediaItem[];
+}
+export interface MediaItem {
+  id: number;
+  file: string;
+  type: 'image' | 'video';
+}
+
+
+export interface Post {
+  id: number;
+  title: string;
+  room: Room;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+}
+
+export interface PaginationResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Post[];
+}
+
+export const ROOM_TYPE_MAP: Record<string, string> = {
+  '1': 'Phòng trọ',
+  '2': 'Homestay',
+  '3': 'Nhà nguyên căn',
+  '4': 'Studio',
+  '5': 'Chung cư mini',
+};
+
+export interface Message {
+  id: number;
+  sender: User;
+  receiver: User;
+  message: string;
+  is_read: boolean;
+  date: string;
+  sender_profile?: Infor;   
+  receiver_profile?: Infor;
+}
+
+const csrftoken = getCSRFToken();
+export const fetchInbox = async (userId: number) => {
+  const res = await axios.get<Message[]>(`${process.env.REACT_APP_API_URL}/api/my-messages/${userId}/`,
+    {
+      withCredentials: true,
+      headers: {
+        'X-CSRFToken': csrftoken || '',
+      }
+    }
+  );
+  return res.data;
+};
+
+export const searchUser = async (username: string): Promise<Infor[]> => {
+  try {
+    const res = await axios.get<Infor[]>(
+      `${process.env.REACT_APP_API_URL}/api/search/users/?q=${username}`,
+      {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': csrftoken || '',
+        },
+      }
+    );
+
+    return res.data; 
+  } catch (err) {
+    return [];
+  }
 };

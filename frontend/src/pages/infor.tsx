@@ -2,41 +2,8 @@ import LogoutButton from "../components/LogoutButton";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getCSRFToken } from "../utils/cookies";
+import { City, District, Infor, User, Ward } from "../components/interface_type";
 
-type City = { id?: number; name: string };
-type District = { id: number; name: string };
-type Ward = { id: number; name: string };
-
-interface Infor {
-  id: number;
-  full_name: string;
-  bio?: string;
-  image: File | string;
-  city?: number;
-  district?: number;
-  ward?: number;
-  address_detail?: string;
-  phone_number?: string;
-  national_id?: string;
-  national_id_date?: string;
-  national_id_address?: string;
-  id_front_image?: File | string;
-  id_back_image?: File | string;
-  bank_name?: string;
-  bank_account?: string;
-  bank_account_name?: string;
-  show_bio: boolean;
-  show_phone_number: boolean;
-  show_address: boolean;
-  role: string;
-}
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  infor: Infor;
-}
 
 type ToggleField = 'show_bio' | 'show_phone_number' | 'show_address';
 const csrftoken = getCSRFToken();
@@ -56,7 +23,7 @@ const CurrentUserProfile: React.FC = () => {
   const [selectedWardId, setSelectedWardId] = useState<number | null>(null);
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/users/me/`, {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/profile/me/`, {
       withCredentials: true
     })
       .then(res => {
@@ -95,20 +62,33 @@ const CurrentUserProfile: React.FC = () => {
     setSelectedWardId(null);
   }, [selectedCityId]);
 
+  console.log('selectedDistrictId', selectedDistrictId);
   useEffect(() => {
-    if (selectedDistrictId) {
-      console.log('selectedDistrictId', selectedDistrictId);
-      axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${selectedDistrictId}`)
-        .then((res) => {
-          console.log('wards:', res.data.wards);
-          setWards(res.data.wards)
-        })
-        .catch((err) => console.error('Error fetching wards:', err));
+    if (editing) {
+      // Khi đang chỉnh sửa, theo selectedDistrictId
+      if (selectedDistrictId) {
+        console.log('selectedDistrictId', selectedDistrictId);
+        axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${selectedDistrictId}`)
+          .then((res) => {
+            console.log('wards:', res.data.wards);
+            setWards(res.data.wards);
+          })
+          .catch((err) => console.error('Error fetching wards:', err));
+      }
     } else {
-      setWards([]);
+      // Khi không chỉnh sửa, dùng user.infor.district
+      if (user?.infor?.district) {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${user.infor.district}`)
+          .then((res) => {
+            console.log('wards:', res.data.wards);
+            setWards(res.data.wards);
+          })
+          .catch((err) => console.error('Error fetching wards:', err));
+      }
     }
+
     setSelectedWardId(null);
-  }, [selectedDistrictId]);
+  }, [selectedDistrictId, editing, user?.infor?.district]);
 
 
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -171,7 +151,7 @@ const CurrentUserProfile: React.FC = () => {
       }
     });
     console.log('Submitting formData:', formData);
-    axios.put(`${process.env.REACT_APP_API_URL}/api/users/me/`, data, {
+    axios.put(`${process.env.REACT_APP_API_URL}/api/profile/me/`, data, {
       withCredentials: true,
       headers: {
         // 'Content-Type': 'multipart/form-data',
@@ -196,8 +176,10 @@ const CurrentUserProfile: React.FC = () => {
 
   const cityName = cities.find(city => city.id === selectedCityId)?.name || '';
   const districtName = districts.find(d => d.id === infor.district)?.name || '';
-  const wardName = wards.find(w => w.id === infor.ward)?.name || '';
-
+  const wardName = wards.find(w => w.id === infor.ward)?.path_with_type || '';
+  console.log('wardName', wardName);
+  console.log('cityName', cityName);
+  console.log('districtName', districtName);
   return (
     <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem]">
       <div className="flex items-center justify-center">
@@ -223,6 +205,7 @@ const CurrentUserProfile: React.FC = () => {
             <input type="text" name="full_name" value={formData.full_name || ''} onChange={handleChange} className="w-full border p-2 rounded" />
           </div>
           <div>
+            <label className="text-[#006400] font-bold">Loại tài khoản:</label>
             <select name="role" value={formData.role || ''} onChange={handleChange}>
               <option value="tenant">Người thuê</option>
               <option value="landlord">Chủ trọ</option>
@@ -284,9 +267,60 @@ const CurrentUserProfile: React.FC = () => {
             <label>Địa chỉ chi tiết:</label>
             <input type="text" name="address_detail" value={formData.address_detail || ''} onChange={handleChange} className="w-full border p-2 rounded" />
           </div>
+
           <div>
-            <label></label>
+            <label className="text-[#006400] font-bold">Số Căn Cước Công Dân:</label>
+            <input type="text" name="national_id" value={formData.national_id || ''} onChange={handleChange} className="w-full border p-2 rounded" />
           </div>
+          <div>
+            <label className="text-[#006400] font-bold">Ngày cấp:</label>
+            <input type="date" name="national_id_date" value={formData.national_id_date || ''} onChange={handleChange} className="w-full border p-2 rounded" />
+          </div>
+          <div>
+            <label className="text-[#006400] font-bold">Nơi cấp:</label>
+            <input type="text" name="national_id_address" value={formData.national_id_address || ''} onChange={handleChange} className="w-full border p-2 rounded" />
+          </div>
+          <div>
+            <label className="text-[#006400] font-bold">Ảnh mặt trước căn cước công dân:</label>
+            <img src={infor.id_front_image instanceof File ? URL.createObjectURL(infor.id_front_image) : infor.id_front_image || process.env.PUBLIC_URL+'/no-photo.jpg'} alt="mặt trước cccd" className="w-[20rem] aspect-video object-cover" />
+            <div>
+              <label className="text-[#006400] font-bold">Thay đổi:</label>
+              <input
+                type="file"
+                name="id_front_image"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full border p-2 rounded"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[#006400] font-bold">Ảnh mặt sau căn cước công dân:</label>
+            <img src={infor.id_back_image instanceof File ? URL.createObjectURL(infor.id_back_image) : infor.id_back_image || process.env.PUBLIC_URL+'/no-photo.jpg'} alt="mặt sau cccd" className="w-[20rem] aspect-video object-cover" />
+            <div>
+              <label className="text-[#006400] font-bold">Thay đổi:</label>
+              <input
+                type="file"
+                name="id_back_image"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full border p-2 rounded"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[#006400] font-bold">Số tài khoản ngân hàng:</label>
+            <input type="text" name="bank_account" value={formData.bank_account || ''} onChange={handleChange} className="w-full border p-2 rounded" />
+          </div>
+          <div>
+            <label className="text-[#006400] font-bold">Tên tài khoản ngân hàng:</label>
+            <input type="text" name="bank_account_name" value={formData.bank_account_name || ''} onChange={handleChange} className="w-full border p-2 rounded" />
+          </div>
+          <div>
+            <label className="text-[#006400] font-bold">Tên ngân hàng:</label>
+            <input type="text" name="bank_name" value={formData.bank_name || ''} onChange={handleChange} className="w-full border p-2 rounded" />
+          </div>
+
           <div className="flex items-center justify-center">
             <button type="submit" className="bg-[#00b14f] text-white px-4 py-2 rounded">Lưu lại</button>
             <button type="button" onClick={() => setEditing(false)} className="ml-[1rem] text-gray-600">Hủy</button>
@@ -303,7 +337,7 @@ const CurrentUserProfile: React.FC = () => {
           <p><strong className="text-[#006400] font-bold">Tên đầy đủ:  </strong> {infor.full_name}</p>
           <p><strong className="text-[#006400] font-bold">Tiểu sử:  </strong>{infor.bio && `${infor.bio}`}</p>
           <p><strong className="text-[#006400] font-bold">Số điện thoại:  </strong>{infor.phone_number && `${infor.phone_number}`}</p>
-          <p><strong className="text-[#006400] font-bold">Địa chỉ:  </strong> {infor.address_detail && `${infor.address_detail}, ${wardName}, ${districtName}, ${cityName}`}</p>
+          <p><strong className="text-[#006400] font-bold">Địa chỉ:  </strong> {infor.address_detail && `${infor.address_detail}, ${wardName}`}</p>
           <p><strong className="text-[#006400] font-bold">Số Căn Cước Công Dân:  </strong>{infor.national_id && `${infor.national_id}`}</p>
           <p><strong className="text-[#006400] font-bold">Nơi cấp:  </strong>{infor.national_id_address && `${infor.national_id_address}`}</p>
           <p><strong className="text-[#006400] font-bold">Ngày cấp:  </strong>{infor.national_id_date && `${infor.national_id_date}`}</p>

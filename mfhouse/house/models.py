@@ -47,11 +47,11 @@ class Room(models.Model):
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES, default="1")
 
     price = models.IntegerField()
-    is_available = models.BooleanField(default=True)
+    # is_available = models.BooleanField(default=True)
 
     deposit = models.IntegerField(null=True, blank=True)
     electric = models.IntegerField(null=True, blank=True)
-    water = models.CharField(max_length=255)
+    water = models.CharField(max_length=255, null=True, blank=True)
     service_price = models.IntegerField(null=True, blank=True)
 
     area = models.DecimalField(max_digits=6, decimal_places=2)

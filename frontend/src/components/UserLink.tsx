@@ -11,7 +11,7 @@ const UserLink: React.FC<Props> = ({ username }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/users/me/`, {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/profile/me/`, {
         withCredentials: true
     })
       .then(res => {

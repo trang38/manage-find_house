@@ -2,68 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar';
 import FilterPanel from '../components/FilterPanel';
+import { PaginationResponse, Post, ROOM_TYPE_MAP } from '../components/interface_type';
 
 const DEFAULT_IMAGE = process.env.PUBLIC_URL + '/no-photo.jpg';
 
 // Định nghĩa kiểu dữ liệu theo JSON bạn cung cấp
-interface House {
-  id: number;
-  name: string;
-  address_detail: string;
-  num_floors: number;
-  rooms_per_floor: number;
-  owner: number;
-  city: number;      // id thành phố
-  district: number;  // id quận/huyện
-  ward: number;      // id phường/xã
-}
 
-interface Room {
-  id: number;
-  room_name: string;
-  room_type: string; // ví dụ "5"
-  price: string;     // ví dụ "1800000.00"
-  is_available: boolean;
-  deposit: number;
-  electric: number;
-  water: string;
-  service_price: string | null;
-  area: string;
-  amenities: string;
-  description: string;
-  is_posted: boolean;
-  status: string;    // ví dụ "available"
-  updated_at: string;
-  media: { id: number; file: string }[];
-  post_id: number;
-  house: House;
-}
-
-interface Post {
-  id: number;
-  title: string;
-  room: Room;
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-}
-
-interface PaginationResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Post[];
-}
-
-// Map room_type code sang tên hiển thị
-const ROOM_TYPE_MAP: Record<string, string> = {
-  '1': 'Phòng trọ',
-  '2': 'Homestay',
-  '3': 'Nhà nguyên căn',
-  '4': 'Studio',
-  '5': 'Chung cư mini',
-};
-
+export const formatPrice = (priceStr: string) => {
+    const priceNum = Number(priceStr);
+    if (isNaN(priceNum)) return priceStr;
+    return priceNum.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  };
 const HomePage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -74,11 +23,7 @@ const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<Record<string, string | number>>({});
 
-  const formatPrice = (priceStr: string) => {
-    const priceNum = Number(priceStr);
-    if (isNaN(priceNum)) return priceStr;
-    return priceNum.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-  };
+
   const fetchWardNames = async (districtIds: number[]) => {
     const wardMap: Record<number, string> = {};
 
@@ -127,11 +72,15 @@ const HomePage: React.FC = () => {
       });
       params.append('page', pageNum.toString());
 
-      // Không còn phân biệt /filter/, luôn dùng /api/posts/
       const res = await axios.get<PaginationResponse>(`${process.env.REACT_APP_API_URL}/api/posts/?${params.toString()}`);
       setPosts(res.data.results);
       console.log(`${process.env.REACT_APP_API_URL}/api/posts/?${params.toString()}`);
-      const uniqueDistrictIds = Array.from(new Set(res.data.results.map(post => post.room.house.district)));
+      const uniqueDistrictIds = Array.from(
+        new Set(
+          res.data.results
+            .map(post => post.room.house && typeof post.room.house === 'object' ? post.room.house.district : null)
+        )
+      ).filter((id): id is number => id !== null && id !== undefined);
       fetchWardNames(uniqueDistrictIds);
 
       setNextPage(res.data.next);
@@ -165,8 +114,10 @@ const HomePage: React.FC = () => {
               {posts.map((post) => {
                 const { room } = post;
                 console.log(room);
-                const firstMedia = room.media.length > 0 ? room.media[0].file : DEFAULT_IMAGE;
-                const wardName = wardIdToName[room.house.ward];
+                const firstMedia = room.media && room.media.length > 0 ? room.media[0].file : DEFAULT_IMAGE;
+                const wardName = typeof room.house === 'object' && room.house !== null && 'ward' in room.house && room.house.ward != null
+                  ? wardIdToName[(room.house as { ward: number }).ward]
+                  : '';
                 return (
                   <div key={post.id} className="border rounded shadow p-4 flex flex-row w-full gap-[0.8rem]">
                     <div className='flex-none'>
@@ -184,9 +135,9 @@ const HomePage: React.FC = () => {
                         <h2 className="text-lg font-semibold text-[#228B22] hover:underline">{post.title}</h2>
                       </a>
                       <p className="text-[#cccccc] text-[0.8rem] mb-[0.5rem]">Đăng lúc: {post.created_at.split('T')[0]} {post.created_at.split('T')[1].slice(0, 5)}  |  Cập nhật: {post.updated_at.split('T')[0]} {post.updated_at.split('T')[1].slice(0, 5)}</p>
-                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/location.png'} alt="Địa chỉ: " className='w-[1rem] h-[1rem]' /> {room.house.address_detail}{wardName ? `, ${wardName}` : ''} </p>
-                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/price-tag.png'} alt="Giá phòng: " className='w-[1rem] h-[1rem]' /> {formatPrice(room.price)}</p>
-                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + 'area.png'} alt="Diện tích: " className='w-[1rem] h-[1rem]' /> {room.area} m²</p>
+                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/location.png'} alt="Địa chỉ: " className='w-[1rem] h-[1rem]' /> {typeof room.house === 'object' && room.house !== null && 'address_detail' in room.house ? room.house.address_detail : ''}{wardName ? `, ${wardName}` : ''} </p>
+                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/price-tag.png'} alt="Giá phòng: " className='w-[1rem] h-[1rem]' /> {formatPrice(String(room.price))}</p>
+                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/area.png'} alt="Diện tích: " className='w-[1rem] h-[1rem]' /> {room.area} m²</p>
                       <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><span>Loại phòng:</span> {ROOM_TYPE_MAP[room.room_type] || room.room_type}</p>
                       <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><span>Tiện nghi:</span> {room.amenities}</p>
                     </div>

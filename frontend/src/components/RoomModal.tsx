@@ -1,31 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getCSRFToken } from '../utils/cookies';
-import { House } from './interface_type';
+import { House, MediaItem, Room } from './interface_type';
 
-interface Room {
-  id?: number;
-  room_name: string;
-  room_type?: string;
-  house: number | House;
-  price?: number;
-  deposit?: number;
-  electric?: number;
-  water?: string;
-  service_price?: number;
-  area?: number;
-  amenities?: string;
-  description?: string;
-  status?: string;
-  is_posted?: boolean;
-  updated_at?:string;
-  post_id?: number;
-}
-interface MediaItem {
-  id: number;
-  file: string;
-  type: 'image' | 'video';
-}
+
 
 interface Props {
   room: Room | null;

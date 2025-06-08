@@ -5,7 +5,7 @@ from infor.models import Infor
 # Create your models here.
 
 class Chat(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user")
+    # user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user")
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="sender")
     receiver = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="receiver")
     

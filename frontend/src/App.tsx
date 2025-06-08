@@ -11,6 +11,9 @@ import CurrentUserProfile from "./pages/infor";
 import Footer from "./components/footer";
 import ManageHouse from "./pages/manage_house";
 import RoomsInHouse from "./pages/rooms";
+import PostDetail from "./pages/post_details";
+import PublicUserProfile from "./pages/infor_public_user";
+import ChatPage from "./pages/chat_page";
 
 function Initializer() {
   const { isLoading } = useAuthSessionQuery();
@@ -49,8 +52,12 @@ export default function App() {
             <Route index element={<CrudBody />} />
             <Route path="app" element={<HomePage />} />
             <Route path="profile/me" element={<CurrentUserProfile />} />
+            <Route path="profile/users/:username" element={<PublicUserProfile />} />
             <Route path="manage-house" element={<ManageHouse />} />
             <Route path="houses/:id/rooms" element={<RoomsInHouse />} />
+            <Route path="posts/:id" element={<PostDetail />} />
+            <Route path="/chat" element={<ChatPage />} />
+          
           {/* </Route> */}
       </Routes>
       <Footer />
