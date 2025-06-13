@@ -10,12 +10,26 @@ from .serializers import ContractSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as filters
+
+
+class ContractFilter(filters.FilterSet):
+    landlord = filters.NumberFilter(field_name="landlord")
+    tenant = filters.NumberFilter(field_name="tenant")
+    booking = filters.NumberFilter(field_name="booking")
+
+    class Meta:
+        model = Contract
+        fields = ['landlord', 'tenant', 'booking']
 
 class ContractViewSet(viewsets.ModelViewSet):
-    queryset = Contract.objects.all()
+    queryset = Contract.objects.all().order_by('-updated_at')
     serializer_class = ContractSerializer
     permission_classes = [permissions.IsAuthenticated, IsLandlord, CannotDeleteCompletedContract]
-
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ContractFilter
+    
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['request'] = self.request
@@ -75,9 +89,9 @@ class ContractViewSet(viewsets.ModelViewSet):
         contract = self.get_object()
         if request.user != contract.landlord:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        if not self.landlord_completed or not self.tenant_completed:
+        if not contract.landlord_completed or not contract.tenant_completed:
             return Response({'detail': 'landlord or tenant has not completed the contract'}, status=status.HTTP_400_BAD_REQUEST)
-        if self.status == 'completed':
+        if contract.status == 'completed':
             return Response({'detail': 'the contract has been completed.'}, status=status.HTTP_400_BAD_REQUEST)
         
         contract.landlord_confirm = True
@@ -118,7 +132,7 @@ class ContractViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         contract = self.get_object()
-        if request.user != contract.landlord or request.user != contract.tenant:
+        if request.user != contract.landlord and request.user != contract.tenant:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         if contract.status in ['canceled', 'end']:
             return Response({'detail': 'can not cancel the contract which be canceled or ended'}, status=status.HTTP_400_BAD_REQUEST)

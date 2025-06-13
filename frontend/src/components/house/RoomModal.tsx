@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { getCSRFToken } from '../utils/cookies';
-import { House, MediaItem, Room } from './interface_type';
+import { getCSRFToken } from '../../utils/cookies';
+import { House, MediaItem, Room } from '.././interface_type';
 
 
 

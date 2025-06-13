@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 from dateutil.relativedelta import relativedelta
 from book.models import Booking
+from django.forms.models import model_to_dict
 # Create your models here.
 class Contract(models.Model):
     STATUS = [
@@ -53,7 +54,20 @@ class Contract(models.Model):
         if self.pk:
             old = Contract.objects.get(pk=self.pk)
             if old.completed_at is not None:
-                raise ValidationError("Contract đã hoàn thành, không thể cập nhật.")
+                current_data = model_to_dict(self)
+                old_data = model_to_dict(old)
+
+                ignored_fields = ['id', 'end_date', 'updated_at', 'created_at', 'completed_at']
+                changed_fields = []
+
+                for key in current_data:
+                    if key in ignored_fields:
+                        continue
+                    if current_data[key] != old_data[key]:
+                        changed_fields.append(key)
+
+                if changed_fields:
+                    raise ValidationError(f"Hợp đồng đã hoàn thành, chỉ được thay đổi 'end_date'. Các trường bị thay đổi: {', '.join(changed_fields)}.")
             # Chặn sửa nếu đã bị hủy
             if old.status == 'canceled':
                 raise ValidationError("Hợp đồng đã bị hủy, không thể cập nhật.")
@@ -76,7 +90,7 @@ class Contract(models.Model):
             not self.completed_at
         )
 
-        self.full_clean()  # Kiểm tra không được update khi đã completed
+        self.full_clean()  
 
         if is_completed_now:
             # Gán completed_at tạm thời vì updated_at chưa có
@@ -87,9 +101,7 @@ class Contract(models.Model):
             self.data = {
                 "landlord_fullname": self.landlord.infor.full_name,
                 "landlord_email": self.landlord.email,
-                "landlord_city": self.landlord.infor.city,
-                "landlord_district": self.landlord.infor.district,
-                "landlord_ward": self.landlord.infor.ward,
+                "landlord_ward": self.landlord.infor.ward.path_with_type,
                 "landlord_address_detail": self.landlord.infor.address_detail,
                 "landlord_phone_number": self.landlord.infor.phone_number,
                 "landlord_national_id": self.landlord.infor.national_id,
@@ -103,9 +115,7 @@ class Contract(models.Model):
 
                 "tenant_fullname": self.tenant.infor.full_name,
                 "tenant_email": self.tenant.email,
-                "tenant_city": self.tenant.infor.city,
-                "tenant_district": self.tenant.infor.district,
-                "tenant_ward": self.tenant.infor.ward,
+                "tenant_ward": self.tenant.infor.ward.path_with_type,
                 "tenant_address_detail": self.tenant.infor.address_detail,
                 "tenant_phone_number": self.tenant.infor.phone_number,
                 "tenant_national_id": self.tenant.infor.national_id,
@@ -117,9 +127,7 @@ class Contract(models.Model):
                 "tenant_bank_account": self.tenant.infor.bank_account or "",
                 "tenant_bank_account_name": self.tenant.infor.bank_branch or "",
 
-                "room_city": self.room.house.city,
-                "room_district": self.room.house.district,
-                "room_ward": self.room.house.ward,
+                "room_ward": self.room.house.ward.path_with_type,
                 "room_address_detail" : self.room.house.address_detail,
                 "room_type": self.room.room_type,
                 "room_price": self.room.price,

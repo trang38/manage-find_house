@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { MediaItem, Post, User, Ward } from "../components/interface_type";
+import { MediaItem, Post, ROOM_TYPE_MAP, User, Ward } from "../components/interface_type";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { getCSRFToken } from "../utils/cookies";
-import { geocodeAddress } from "../components/HouseList";
-import GoongMap from "../components/GoongMap";
+import { geocodeAddress } from "../components/house/HouseList";
+import GoongMap from "../components/post/GoongMap";
 import { formatPrice } from "./home";
 import { useAuthSessionQuery } from "../django-allauth/sessions/hooks";
-import EditPostModal from "../components/EditPostModal";
+import EditPostModal from "../components/post/EditPostModal";
 
 const csrftoken = getCSRFToken();
 const PostDetail = () => {
@@ -22,6 +22,7 @@ const PostDetail = () => {
   const isAuthenticated = authData?.isAuthenticated;
   const [owner, setOwner] = useState<User>();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
   const navigate = useNavigate();
 
   const visibleThumbs = 8;
@@ -40,7 +41,7 @@ const PostDetail = () => {
   useEffect(() => {
     if (typeof post?.room.house === "object" && post.room.house !== null) {
       console.log('city', post.room.house.city);
-      fetch(`${process.env.REACT_APP_API_URL}/api/posts/?city=${post.room.house.city}&district=${post.room.house.district}&ward=${post.room.house.ward}`)
+      fetch(`${process.env.REACT_APP_API_URL}/api/posts/?city=${post.room.house.city}&district=${post.room.house.district}&ward=${typeof post.room.house.ward === 'object' && post.room.house.ward !== null && 'id' in post.room.house.ward ? post.room.house.ward.id : post.room.house.ward}`)
         .then(res => res.json())
         .then(data => {
           setRecommended(data.results);
@@ -48,30 +49,32 @@ const PostDetail = () => {
         })
         .catch(err => console.error("Failed to fetch recommended posts:", err));
 
-      axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${post.room.house.district}`).then((res) => setWards(res.data.wards));
-      console.log('Recommended posts:', recommended);
-      axios.get(`${process.env.REACT_APP_API_URL}/api/profile/users/${post.room.house.owner}`, {
-        withCredentials: true,
-      }).then((res) => setOwner(res.data));
+      // axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${post.room.house.district}`).then((res) => setWards(res.data.wards));
+      // console.log('Recommended posts:', recommended);
+      // axios.get(`${process.env.REACT_APP_API_URL}/api/profile/users/${post.room.house.owner}`, {
+      //   withCredentials: true,
+      // }).then((res) => setOwner(res.data));
     }
   }, [post?.room.house]);
 
-  console.log('wards:', wards);
+  // console.log('wards:', wards);
 
-  const ward_path_name =
-    typeof post?.room.house === "object" && post?.room.house !== null && "ward" in post.room.house
-      ? wards.find(w => w.id === (post.room.house as { ward: number }).ward)?.path_with_type || ''
-      : '';
+  // const ward_path_name =
+  //   typeof post?.room.house === "object" && post?.room.house !== null && "ward" in post.room.house
+  //     ? wards.find(w => w.id === (post.room.house as { ward: number }).ward)?.path_with_type || ''
+  //     : '';
 
-  console.log('path_name', ward_path_name);
-  console.log('Owner:', owner);
+  // console.log('path_name', ward_path_name);
+  // console.log('Owner:', owner);
 
   useEffect(() => {
     const house = post?.room.house;
     const fetchCoordinates = async () => {
       if (!house) return;
 
-      const fullAddress = `${typeof house === "object" && house !== null && "address_detail" in house && house.address_detail ? house.address_detail + ', ' : ''}${typeof house === "object" && house !== null && "ward" in house && house.ward ? ward_path_name : ''}`;
+      const fullAddress = `${typeof house === "object" && house !== null && "address_detail" in house && house.address_detail
+        ? house.address_detail + ', ' + (typeof house.ward === "object" && house.ward !== null && "path_with_type" in house.ward ? house.ward.path_with_type : '')
+        : ''}`;
 
       try {
         const coords = await geocodeAddress(fullAddress);
@@ -81,13 +84,13 @@ const PostDetail = () => {
       }
     };
     fetchCoordinates();
-  }, [post?.room.house, ward_path_name]);
+  }, [post?.room.house]);
 
   const isVideo = (url: string) => {
     const ext = url.split('.').pop()?.toLowerCase();
     return ['mp4', 'webm', 'ogg'].includes(ext || '');
   };
-  const isOwner = isAuthenticated && typeof post?.room?.house === "object" && post?.room?.house !== null && authData?.user?.username === post.room.house.owner;
+  const isOwner = isAuthenticated && typeof post?.room?.house === "object" && post?.room?.house !== null && authData?.user?.username === post.room.house.owner.username;
 
   const handleDeletePost = async () => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bài đăng này?")) return;
@@ -122,6 +125,51 @@ const PostDetail = () => {
     } catch (error) {
       console.error("Lỗi khi xóa bài đăng:", error);
       alert("Không thể xóa bài đăng.");
+    }
+  };
+  const handleContactOwner = (owner: User | undefined) => {
+    if (!isAuthenticated) {
+      window.open('/auth/login');
+    } else {
+      navigate('/chat', {
+        state: {
+          id: owner?.id,
+          image: (process.env.REACT_APP_API_URL ?? '') + owner?.infor.image,
+          full_name: owner?.infor.full_name || null,
+        },
+      });
+    }
+  };
+  const handleBooking = async () => {
+    if (!isAuthenticated) {
+      window.open('/auth/login');
+      return;
+    }
+    if (isOwner) return;
+    setIsBooking(true);
+
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/bookings/`, {
+        post: post?.id,
+        // tenant: authData?.user?.username,
+      }, {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': csrftoken || '',
+        },
+      });
+      alert("Đặt phòng thành công!");
+      navigate('/bookings');
+    } catch (err: any) {
+      console.error("Error booking post:", err);
+      if (err.response && err.response.status === 400) {
+        alert("Bạn đã đặt phòng này rồi.");
+      } else {
+        alert("Đặt phòng không thành công. Vui lòng thử lại sau.");
+      }
+      return;
+    } finally {
+      setIsBooking(false);
     }
   };
   return (
@@ -179,11 +227,23 @@ const PostDetail = () => {
         {/* Room Info */}
         <div className="space-y-2">
           <p className="text-[#cccccc] text-[0.8rem] mb-[0.5rem] mt-[2rem]">Đăng lúc: {post?.created_at.split('T')[0]} {post?.created_at.split('T')[1].slice(0, 5)}  |  Cập nhật: {post?.updated_at.split('T')[0]} {post?.updated_at.split('T')[1].slice(0, 5)}</p>
-          <p className="flex flex-row items-center"><strong><img src={process.env.PUBLIC_URL + '/location.png'} alt="Địa chỉ: " className='w-[1rem] h-[1rem] mr-[0.5rem]' /></strong> {typeof post?.room.house === "object" && post.room.house !== null ? post.room.house.address_detail + ', ' + ward_path_name : ""}</p>
+          <p className="flex flex-row items-center">
+            <strong>
+              <img src={process.env.PUBLIC_URL + '/location.png'} alt="Địa chỉ: " className='w-[1rem] h-[1rem] mr-[0.5rem]' />
+            </strong>
+            {typeof post?.room.house === "object" && post.room.house !== null
+              ? post.room.house.address_detail +
+              ', ' +
+              (typeof post.room.house.ward === "object" && post.room.house.ward !== null && "path_with_type" in post.room.house.ward
+                ? post.room.house.ward.path_with_type
+                : "")
+              : ""}
+          </p>
           <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/price-tag.png'} alt="Giá phòng: " className='w-[1rem] h-[1rem]' /> {formatPrice(String(post?.room.price))}</p>
           <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/area.png'} alt="Diện tích: " className='w-[1rem] h-[1rem]' /> {post?.room.area} m²</p>
+          <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><strong>Loại phòng:</strong> {post?.room.room_type !== undefined ? (ROOM_TYPE_MAP[post.room.room_type] || post.room.room_type) : ''}</p>
           {post?.room.deposit && (
-            <p><strong>Đặt cọc:</strong> {post?.room.deposit}</p>
+            <p><strong>Đặt cọc:</strong> {formatPrice(String(post?.room.deposit))}</p>
           )}
           {post?.room.electric && (
             <p><strong>Tiền điện:</strong> {post?.room.electric}</p>
@@ -207,22 +267,35 @@ const PostDetail = () => {
         {/* Owner Info */}
         <div className="w-full items-center mt-[2rem]">
           <strong>Thông tin người đăng</strong>
-          <div className="flex flex-row items-center gap-[1.5rem] mt-[0.5rem]">
-            <a href={isOwner ? '/profile/me' : `/profile/users/${owner?.username}`} className="flex flex-row gap-[1rem] items-center text-blue-600 hover:underline">
-              <img
-                src={
-                  typeof owner?.infor.image === "string"
-                    ? owner.infor.image
-                    : owner?.infor.image instanceof File
-                      ? URL.createObjectURL(owner.infor.image)
-                      : undefined
-                }
-                alt="avatar"
-                className="h-10 w-10 rounded-full object-cover"
-              />
-              {owner?.username}
-            </a>
-          </div>
+          {typeof post?.room.house === 'object' && (
+            <div className="flex flex-row items-center gap-[1.5rem] mt-[0.5rem]">
+              <a href={isOwner ? '/profile/me' : `/profile/users/${post?.room.house.owner.username}`} className="flex flex-row gap-[1rem] items-center text-blue-600 hover:underline">
+                <img
+                  src={
+  typeof post.room.house.owner.infor.image === "string"
+    ? (post.room.house.owner.infor.image.startsWith("http")
+        ? post.room.house.owner.infor.image
+        : (process.env.REACT_APP_API_URL ?? "") + post.room.house.owner.infor.image)
+    : post.room.house.owner.infor.image instanceof File
+      ? URL.createObjectURL(post.room.house.owner.infor.image)
+      : "default.jpg"
+                  }
+                  alt={post?.room.house.owner.username}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+                {post?.room.house.owner.infor.full_name}
+              </a>
+              {!isOwner && (
+                <button
+                  onClick={() => typeof post.room.house === "object" && post.room.house !== null ? handleContactOwner(post.room.house.owner) : undefined}
+                  className="w-[2rem] h-[2rem]"
+                >
+                  <img src={process.env.PUBLIC_URL + '/icons8-chat-bubble-50.png'} alt="Liên hệ người đăng" />
+                </button>
+              )}
+            </div>
+          )}
+
         </div>
         {/* Map */}
         <div className="mt-[2rem]">
@@ -265,6 +338,17 @@ const PostDetail = () => {
             onClose={() => setIsEditOpen(false)}
             onUpdate={(updatedPost) => setPost(updatedPost)}
           />
+        )}
+        {/* Booking Button*/}
+        {!isOwner && (
+          <div className="mt-[2rem] flex items-center justify-center">
+            <button
+              className="bg-[#00b14f] text-white px-6 py-2 rounded disabled:opacity-50 w-fit"
+              onClick={handleBooking}
+            >
+              Đặt phòng
+            </button>
+          </div>
         )}
       </div>
       {/* Recommended Posts */}

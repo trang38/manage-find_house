@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuthSessionQuery } from "../django-allauth/sessions/hooks";
+import NotificationModal from './NotificationModal';
 
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -12,6 +13,7 @@ export default function Header() {
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notiOpen, setNotiOpen] = useState(false);
 
   console.log(authData);
 
@@ -58,13 +60,13 @@ export default function Header() {
 
           {isAuthenticated && (
             <div className="flex flex-row gap-[1.5rem]">
-              <Link to="" className={(location.pathname === "") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+              <Link to="/bookings" className={(location.pathname === "/bookings") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
                 Lịch sử đặt phòng
               </Link>
-              <Link to="" className={(location.pathname === "") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+              <Link to="/contracts" className={(location.pathname === "/contracts") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
                 Hợp đồng
               </Link>
-              <Link to="" className={(location.pathname === "") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+              <Link to="/payments" className={(location.pathname === "/payments") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
                 Hóa đơn
               </Link>
             </div>
@@ -73,46 +75,20 @@ export default function Header() {
         </div>
       </div>
       <div>
-        {/* {authLoading ? (
-          <span>Loading...</span>
-        ) : authData?.isAuthenticated ? (
-          <div className="flex flex-row gap-[1.5rem] items-center">
-            <Link to="" className={location.pathname === "" ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
-              <img src={process.env.PUBLIC_URL + "/notification-bell.png"} className="w-[1.5rem] h-[1.5rem]" />
-            </Link>
-            <Link to="/profile/me" className={location.pathname === "/profile/me" ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
-              <img src={process.env.PUBLIC_URL + "/messenger.png"} className="w-[1.5rem] h-[1.5rem]" />
-            </Link>
-            <Link to="/profile/me" className={location.pathname === "/profile/me" ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
-              <img
-                src={
-                  user?.infor?.image instanceof File
-                    ? URL.createObjectURL(user?.infor?.image)
-                    : user?.infor?.image
-                }
-                alt={user?.username}
-                className="w-[1.8rem] h-[1.8rem] rounded-full object-cover"
-              />
-            </Link>
-          </div>
-        ) : (
-          <Link to="/auth/login" className={location.pathname === "/auth/login" ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
-            Login
-          </Link>
-        )} */}
         {(authLoading || loading) ? (
           <span>Loading...</span>
         ) : authData?.isAuthenticated ? (
           <div className="flex flex-row gap-[1.5rem] items-center">
-            <Link to="" className={(location.pathname === "") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
+            <button onClick={() => setNotiOpen(true)} className="relative">
               <img src={process.env.PUBLIC_URL + "/notification-bell.png"} className="w-[1.5rem] h-[1.5rem]" />
-            </Link>
+            </button>
             <Link to="/chat" className={(location.pathname === "/chat") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
               <img src={process.env.PUBLIC_URL + "/messenger.png"} className="w-[1.5rem] h-[1.5rem]" />
             </Link>
             <Link to="/profile/me" className={(location.pathname === "/profile/me") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>
               <img src={user?.infor?.image instanceof File ? URL.createObjectURL(user?.infor?.image) : user?.infor?.image} alt={user?.username} className="w-[1.8rem] h-[1.8rem] rounded-full object-cover" />
             </Link>
+            <NotificationModal open={notiOpen} onClose={() => setNotiOpen(false)} />
           </div>
         ) : (
           <Link to="/auth/login" className={(location.pathname === "/auth/login") ? 'text-[#00b14f] font-bold' : 'text-[#333] hover:underline'}>Login</Link>

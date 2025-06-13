@@ -10,10 +10,11 @@ class Notification(models.Model):
         ('chat', 'Chat')
     ]
 
-    actor = models.ForeignKey(
+    receiver = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='notification')
     message = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     type = models.CharField(
         max_length=20, choices=TYPES)
+    is_read = models.BooleanField(default=False)
     

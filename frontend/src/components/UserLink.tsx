@@ -18,7 +18,7 @@ const UserLink: React.FC<Props> = ({ username }) => {
         setCurrentUsername(res.data.username);
       })
       .catch(() => {
-        setCurrentUsername(null); // not logged in
+        setCurrentUsername(null); 
       });
   }, []);
 

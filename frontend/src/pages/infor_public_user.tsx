@@ -6,9 +6,9 @@ import { City, District, User, Ward } from "../components/interface_type";
 const PublicUserProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const [user, setUser] = useState<User | null>(null);
-  const [cities, setCities] = useState<City[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
+  // const [cities, setCities] = useState<City[]>([]);
+  // const [districts, setDistricts] = useState<District[]>([]);
+  // const [wards, setWards] = useState<Ward[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,38 +27,35 @@ const PublicUserProfile: React.FC = () => {
       .finally(() => setLoading(false));
   }, [username]);
 
-  useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_URL}/api/address/cities`)
-      .then((res) => setCities(res.data))
-      .catch(() => {});
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get(`${process.env.REACT_APP_API_URL}/api/address/cities`)
+  //     .then((res) => setCities(res.data))
+  //     .catch(() => {});
+  // }, []);
 
-  useEffect(() => {
-    if (user?.infor?.city) {
-      axios
-        .get(`${process.env.REACT_APP_API_URL}/api/address/city/${user.infor.city}`)
-        .then((res) => setDistricts(res.data.districts))
-        .catch(() => {});
-    }
-  }, [user?.infor?.city]);
+  // useEffect(() => {
+  //   if (user?.infor?.city) {
+  //     axios
+  //       .get(`${process.env.REACT_APP_API_URL}/api/address/city/${user.infor.city}`)
+  //       .then((res) => setDistricts(res.data.districts))
+  //       .catch(() => {});
+  //   }
+  // }, [user?.infor?.city]);
 
-  useEffect(() => {
-    if (user?.infor?.district) {
-      axios
-        .get(`${process.env.REACT_APP_API_URL}/api/address/district/${user.infor.district}`)
-        .then((res) => setWards(res.data.wards))
-        .catch(() => {});
-    }
-  }, [user?.infor?.district]);
+  // useEffect(() => {
+  //   if (user?.infor?.district) {
+  //     axios
+  //       .get(`${process.env.REACT_APP_API_URL}/api/address/district/${user.infor.district}`)
+  //       .then((res) => setWards(res.data.wards))
+  //       .catch(() => {});
+  //   }
+  // }, [user?.infor?.district]);
 
   if (loading) return <div>Loading...</div>;
   if (!user) return <div>Không tìm thấy người dùng.</div>;
 
   const { infor } = user;
-  const cityName = cities.find((city) => city.id === infor.city)?.name || "";
-  const districtName = districts.find((d) => d.id === infor.district)?.name || "";
-  const wardName = wards.find((w) => w.id === infor.ward)?.path_with_type || "";
 
   return (
     <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem]">
@@ -72,8 +69,8 @@ const PublicUserProfile: React.FC = () => {
               typeof infor.image === "string"
                 ? infor.image
                 : infor.image instanceof File
-                ? URL.createObjectURL(infor.image)
-                : "default.jpg"
+                  ? URL.createObjectURL(infor.image)
+                  : "default.jpg"
             }
             alt={user.username}
             className="w-32 h-32 rounded-full object-cover"
@@ -103,7 +100,10 @@ const PublicUserProfile: React.FC = () => {
         {infor.address_detail && (
           <p>
             <strong className="text-[#006400] font-bold">Địa chỉ: </strong>
-            {infor.address_detail}, {wardName}, {districtName}, {cityName}
+            {infor.address_detail}
+            {typeof infor.ward === "object" && infor.ward !== null && "path_with_type" in infor.ward
+              ? `, ${(infor.ward as Ward).path_with_type}`
+              : ""}
           </p>
         )}
         <p>

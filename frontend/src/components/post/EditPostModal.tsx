@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { getCSRFToken } from "../utils/cookies";
-import { Post } from "./interface_type";
+import { getCSRFToken } from "../../utils/cookies";
+import { Post } from ".././interface_type";
 
 interface EditPostModalProps {
   post: Post;

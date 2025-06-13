@@ -12,9 +12,7 @@ in cmd:
     git push -u origin main
 
 ## fix:
-lỗi trong trang signup: mật khẩu quá ngắn, cần đặt sao cho mật khâur tối thiểu 8 ký tự. //
-thêm các field để update infor //
-thêm page cho view infor of public user //
+các button như booking trả lại thông  báo thành công rất chậm do khi việc tạo notification tồn nhiều thời gian để tạo object và send_mail
 
 
 

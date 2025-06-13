@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import SearchBar from '../components/SearchBar';
-import FilterPanel from '../components/FilterPanel';
-import { PaginationResponse, Post, ROOM_TYPE_MAP } from '../components/interface_type';
+import SearchBar from '../components/post/SearchBar';
+import FilterPanel from '../components/post/FilterPanel';
+import { PaginationResponse, Post, ROOM_TYPE_CSS_MAP, ROOM_TYPE_MAP } from '../components/interface_type';
 
 const DEFAULT_IMAGE = process.env.PUBLIC_URL + '/no-photo.jpg';
 
@@ -24,43 +24,23 @@ const HomePage: React.FC = () => {
   const [filters, setFilters] = useState<Record<string, string | number>>({});
 
 
-  const fetchWardNames = async (districtIds: number[]) => {
-    const wardMap: Record<number, string> = {};
+  // const fetchWardNames = async (districtIds: number[]) => {
+  //   const wardMap: Record<number, string> = {};
 
-    for (const districtId of districtIds) {
-      try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${districtId}`);
-        const wards = res.data.wards || [];
-        wards.forEach((ward: any) => {
-          wardMap[ward.id] = ward.path_with_type;
-        });
-      } catch (error) {
-        console.error(`Lỗi khi lấy phường của district ${districtId}:`, error);
-      }
-    }
-
-    setWardIdToName(wardMap);
-  };
-  // const fetchPosts = async (pageNum = 1) => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await axios.get<PaginationResponse>(`${process.env.REACT_APP_API_URL}/api/posts/?page=${pageNum}`);
-  //     setPosts(res.data.results);
-  //     const uniqueDistrictIds = Array.from(new Set(res.data.results.map(post => post.room.house.district)));
-  //     fetchWardNames(uniqueDistrictIds);
-  //     setNextPage(res.data.next);
-  //     setPrevPage(res.data.previous);
-  //     setPage(pageNum);
-  //   } catch (error) {
-  //     console.error('Lỗi khi lấy bài đăng:', error);
-  //   } finally {
-  //     setLoading(false);
+  //   for (const districtId of districtIds) {
+  //     try {
+  //       const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${districtId}`);
+  //       const wards = res.data.wards || [];
+  //       wards.forEach((ward: any) => {
+  //         wardMap[ward.id] = ward.path_with_type;
+  //       });
+  //     } catch (error) {
+  //       console.error(`Lỗi khi lấy phường của district ${districtId}:`, error);
+  //     }
   //   }
-  // };
 
-  // useEffect(() => {
-  //   fetchPosts();
-  // }, []);
+  //   setWardIdToName(wardMap);
+  // };
 
   const fetchPosts = async (pageNum = 1) => {
     setLoading(true);
@@ -75,13 +55,13 @@ const HomePage: React.FC = () => {
       const res = await axios.get<PaginationResponse>(`${process.env.REACT_APP_API_URL}/api/posts/?${params.toString()}`);
       setPosts(res.data.results);
       console.log(`${process.env.REACT_APP_API_URL}/api/posts/?${params.toString()}`);
-      const uniqueDistrictIds = Array.from(
-        new Set(
-          res.data.results
-            .map(post => post.room.house && typeof post.room.house === 'object' ? post.room.house.district : null)
-        )
-      ).filter((id): id is number => id !== null && id !== undefined);
-      fetchWardNames(uniqueDistrictIds);
+      // const uniqueDistrictIds = Array.from(
+      //   new Set(
+      //     res.data.results
+      //       .map(post => post.room.house && typeof post.room.house === 'object' ? post.room.house.district : null)
+      //   )
+      // ).filter((id): id is number => id !== null && id !== undefined);
+      // fetchWardNames(uniqueDistrictIds);
 
       setNextPage(res.data.next);
       setPrevPage(res.data.previous);
@@ -95,6 +75,8 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     fetchPosts();
   }, [searchTerm, filters]);
+
+
   return (
     <div className="mx-auto min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem] w-fit">
       <div className='max-w-[1000px] max-lg:max-w-[100%] max-lg:px-[1.5rem]'>
@@ -115,9 +97,9 @@ const HomePage: React.FC = () => {
                 const { room } = post;
                 console.log(room);
                 const firstMedia = room.media && room.media.length > 0 ? room.media[0].file : DEFAULT_IMAGE;
-                const wardName = typeof room.house === 'object' && room.house !== null && 'ward' in room.house && room.house.ward != null
-                  ? wardIdToName[(room.house as { ward: number }).ward]
-                  : '';
+                // const wardName = typeof room.house === 'object' && room.house !== null && 'ward' in room.house && room.house.ward != null
+                //   ? wardIdToName[(room.house as { ward: number }).ward]
+                //   : '';
                 return (
                   <div key={post.id} className="border rounded shadow p-4 flex flex-row w-full gap-[0.8rem]">
                     <div className='flex-none'>
@@ -135,10 +117,15 @@ const HomePage: React.FC = () => {
                         <h2 className="text-lg font-semibold text-[#228B22] hover:underline">{post.title}</h2>
                       </a>
                       <p className="text-[#cccccc] text-[0.8rem] mb-[0.5rem]">Đăng lúc: {post.created_at.split('T')[0]} {post.created_at.split('T')[1].slice(0, 5)}  |  Cập nhật: {post.updated_at.split('T')[0]} {post.updated_at.split('T')[1].slice(0, 5)}</p>
-                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/location.png'} alt="Địa chỉ: " className='w-[1rem] h-[1rem]' /> {typeof room.house === 'object' && room.house !== null && 'address_detail' in room.house ? room.house.address_detail : ''}{wardName ? `, ${wardName}` : ''} </p>
+                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'>
+                        <img src={process.env.PUBLIC_URL + '/location.png'} alt="Địa chỉ: " className='w-[1rem] h-[1rem]' />
+                        {typeof room.house === 'object' && room.house !== null && 'ward' in room.house && room.house.ward && typeof room.house.ward === 'object' && 'path_with_type' in room.house.ward
+                          ? `${room.house.address_detail}, ${room.house.ward.path_with_type}`
+                          : ''}
+                      </p>
                       <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/price-tag.png'} alt="Giá phòng: " className='w-[1rem] h-[1rem]' /> {formatPrice(String(room.price))}</p>
                       <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><img src={process.env.PUBLIC_URL + '/area.png'} alt="Diện tích: " className='w-[1rem] h-[1rem]' /> {room.area} m²</p>
-                      <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><span>Loại phòng:</span> {ROOM_TYPE_MAP[room.room_type] || room.room_type}</p>
+                      <p className={`flex flex-row items-center gap-[0.5rem] text-[1rem] ${ROOM_TYPE_CSS_MAP[room.room_type]} text-white w-fit rounded-full px-[.5rem] py-[.1rem]`}>{ROOM_TYPE_MAP[room.room_type] || room.room_type}</p>
                       <p className='flex flex-row items-center gap-[0.5rem] text-[1rem]'><span>Tiện nghi:</span> {room.amenities}</p>
                     </div>
                   </div>

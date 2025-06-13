@@ -8,7 +8,7 @@ from .models import Payment, Refund
 from .serializers import PaymentSerializer, RefundSerializer
 
 class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.all()
+    queryset = Payment.objects.all().order_by('-updated_at')
     serializer_class = PaymentSerializer
     permission_classes = [permissions.IsAuthenticated, CannotDeletePay]
 

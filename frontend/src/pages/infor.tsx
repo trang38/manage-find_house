@@ -32,6 +32,8 @@ const CurrentUserProfile: React.FC = () => {
         setFormData(res.data.infor); // preload form
 
         setSelectedCityId(res.data.infor.city ?? null);
+        setSelectedDistrictId(res.data.infor.district ?? null);
+        setSelectedWardId(res.data.infor.ward.id ?? null);
 
       })
       .catch(err => {
@@ -58,8 +60,10 @@ const CurrentUserProfile: React.FC = () => {
     } else {
       setDistricts([]);
     }
-    setSelectedDistrictId(null);
-    setSelectedWardId(null);
+    if (user && selectedCityId !== user.infor.city) {
+      setSelectedDistrictId(null);
+      setSelectedWardId(null);
+    }
   }, [selectedCityId]);
 
   console.log('selectedDistrictId', selectedDistrictId);
@@ -87,7 +91,9 @@ const CurrentUserProfile: React.FC = () => {
       }
     }
 
-    setSelectedWardId(null);
+    if (user && selectedDistrictId !== user.infor.district) {
+      setSelectedWardId(null);
+    }
   }, [selectedDistrictId, editing, user?.infor?.district]);
 
 
@@ -128,6 +134,10 @@ const CurrentUserProfile: React.FC = () => {
     }
   };
   const handleSubmit = (e: React.FormEvent) => {
+    if (!selectedCityId || !selectedDistrictId || !selectedWardId) {
+      alert("Vui lòng chọn đầy đủ Thành phố, Quận/Huyện, Phường/Xã!");
+      return;
+    }
     e.preventDefault();
     const data = new FormData();
 
@@ -174,12 +184,12 @@ const CurrentUserProfile: React.FC = () => {
 
   const { infor } = user;
 
-  const cityName = cities.find(city => city.id === selectedCityId)?.name || '';
-  const districtName = districts.find(d => d.id === infor.district)?.name || '';
-  const wardName = wards.find(w => w.id === infor.ward)?.path_with_type || '';
-  console.log('wardName', wardName);
-  console.log('cityName', cityName);
-  console.log('districtName', districtName);
+  // const cityName = cities.find(city => city.id === selectedCityId)?.name || '';
+  // const districtName = districts.find(d => d.id === infor.district)?.name || '';
+  // const wardName = wards.find(w => w.id === infor.ward)?.path_with_type || '';
+  // console.log('wardName', wardName);
+  // console.log('cityName', cityName);
+  // console.log('districtName', districtName);
   return (
     <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem]">
       <div className="flex items-center justify-center">
@@ -282,7 +292,7 @@ const CurrentUserProfile: React.FC = () => {
           </div>
           <div>
             <label className="text-[#006400] font-bold">Ảnh mặt trước căn cước công dân:</label>
-            <img src={infor.id_front_image instanceof File ? URL.createObjectURL(infor.id_front_image) : infor.id_front_image || process.env.PUBLIC_URL+'/no-photo.jpg'} alt="mặt trước cccd" className="w-[20rem] aspect-video object-cover" />
+            <img src={infor.id_front_image instanceof File ? URL.createObjectURL(infor.id_front_image) : infor.id_front_image || process.env.PUBLIC_URL + '/no-photo.jpg'} alt="mặt trước cccd" className="w-[20rem] aspect-video object-cover" />
             <div>
               <label className="text-[#006400] font-bold">Thay đổi:</label>
               <input
@@ -296,7 +306,7 @@ const CurrentUserProfile: React.FC = () => {
           </div>
           <div>
             <label className="text-[#006400] font-bold">Ảnh mặt sau căn cước công dân:</label>
-            <img src={infor.id_back_image instanceof File ? URL.createObjectURL(infor.id_back_image) : infor.id_back_image || process.env.PUBLIC_URL+'/no-photo.jpg'} alt="mặt sau cccd" className="w-[20rem] aspect-video object-cover" />
+            <img src={infor.id_back_image instanceof File ? URL.createObjectURL(infor.id_back_image) : infor.id_back_image || process.env.PUBLIC_URL + '/no-photo.jpg'} alt="mặt sau cccd" className="w-[20rem] aspect-video object-cover" />
             <div>
               <label className="text-[#006400] font-bold">Thay đổi:</label>
               <input
@@ -337,7 +347,7 @@ const CurrentUserProfile: React.FC = () => {
           <p><strong className="text-[#006400] font-bold">Tên đầy đủ:  </strong> {infor.full_name}</p>
           <p><strong className="text-[#006400] font-bold">Tiểu sử:  </strong>{infor.bio && `${infor.bio}`}</p>
           <p><strong className="text-[#006400] font-bold">Số điện thoại:  </strong>{infor.phone_number && `${infor.phone_number}`}</p>
-          <p><strong className="text-[#006400] font-bold">Địa chỉ:  </strong> {infor.address_detail && `${infor.address_detail}, ${wardName}`}</p>
+          <p><strong className="text-[#006400] font-bold">Địa chỉ:  </strong> {typeof infor.ward === 'object' && `${infor.address_detail}, ${infor.ward.path_with_type}`}</p>
           <p><strong className="text-[#006400] font-bold">Số Căn Cước Công Dân:  </strong>{infor.national_id && `${infor.national_id}`}</p>
           <p><strong className="text-[#006400] font-bold">Nơi cấp:  </strong>{infor.national_id_address && `${infor.national_id_address}`}</p>
           <p><strong className="text-[#006400] font-bold">Ngày cấp:  </strong>{infor.national_id_date && `${infor.national_id_date}`}</p>

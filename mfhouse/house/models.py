@@ -8,7 +8,6 @@ from mfhouse.permissions import PathAndRename
 # Create your models here.
 class House(models.Model):
     name = models.CharField(max_length=100)
-    # house_type = models.CharField(max_length=20, choices=HOUSE_TYPES)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True, related_name='house')
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True, related_name='house')
@@ -18,14 +17,6 @@ class House(models.Model):
     rooms_per_floor = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # def clean(self):
-    #     if self.house_type == 'multi':
-    #         if not self.num_floors:
-    #             raise ValidationError("Vui lòng điền số tầng.")
-    #         if not self.rooms_per_floor:
-    #             raise ValidationError("Vui lòng điền số phòng trên 1 tầng.")
-
 
 class Room(models.Model):
     STATUS_CHOICES = [
@@ -43,12 +34,10 @@ class Room(models.Model):
     ]
 
     house = models.ForeignKey(House, on_delete=models.CASCADE, related_name='rooms')
-    room_name = models.CharField(max_length=50)   # Ví dụ: 101, 201...
+    room_name = models.CharField(max_length=50) 
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES, default="1")
 
     price = models.IntegerField()
-    # is_available = models.BooleanField(default=True)
-
     deposit = models.IntegerField(null=True, blank=True)
     electric = models.IntegerField(null=True, blank=True)
     water = models.CharField(max_length=255, null=True, blank=True)
@@ -59,16 +48,12 @@ class Room(models.Model):
     description = models.TextField(blank=True)
 
     is_posted = models.BooleanField(default=False)
-
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
-    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')  
     updated_at = models.DateTimeField(auto_now=True)
-
 
 class RoomMedia(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='media')
     file = models.FileField(upload_to=PathAndRename("room_files"))
-
 
 class Post(models.Model):
     room = models.OneToOneField(Room, on_delete=models.CASCADE, related_name='post')

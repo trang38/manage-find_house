@@ -17,11 +17,11 @@ export default function LoginWithSocialButton({
     form.action = `${process.env.REACT_APP_API_URL}/_allauth/browser/v1/auth/provider/redirect`;
     const data = {
       provider: id,
-      callback_url: "http://localhost:3000", // địa chỉ callback phải khớp vs redirect urls trong google api
+      callback_url: "http://localhost:3000", 
       csrfmiddlewaretoken: getCSRFToken() || "",
       process: "login",
       auth_params: JSON.stringify({
-        prompt: "select_account", // chọn tài khoản google
+        prompt: "select_account", 
       })
     };
 

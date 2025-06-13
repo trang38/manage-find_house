@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'django.contrib.sites', 
     'rest_framework', # add rest framework
@@ -57,13 +58,14 @@ INSTALLED_APPS = [
     'bill',
     'book',
     'constract',
-    # 'noti',
+    'noti',
     'report',
     'review',
     'scheduler.apps.SchedulerConfig', # add cron job
-    'websocket_notifications',  # add websocket-notifications package
-    'snitch', # add django-snitch
+    # 'websocket_notifications', 
+    # 'snitch', 
     'django_filters',
+    
 ]
 SITE_ID = 1
 MIDDLEWARE = [
@@ -97,7 +99,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mfhouse.wsgi.application'
-
+ASGI_APPLICATION = 'mfhouse.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -217,7 +219,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-# DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+SERVER_EMAIL = os.getenv('EMAIL_HOST_USER')
 
 if 'test' in sys.argv:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 

@@ -2,20 +2,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import clsx from 'clsx';
-import RoomModal from '../components/RoomModal';
+import RoomModal from '../components/house/RoomModal';
 import { getCSRFToken } from '../utils/cookies';
 import { House, Room, Ward } from '../components/interface_type';
-import { geocodeAddress } from '../components/HouseList';
-import GoongMap from '../components/GoongMap';
-
-// interface Room {
-//   id: number;
-//   room_name: string;
-//   status: string;
-//   room_type: string;
-//   house: number;
-//   [key: string]: any;
-// }
+import { geocodeAddress } from '../components/house/HouseList';
+import GoongMap from '../components/post/GoongMap';
 
 
 const statusColors: Record<string, string> = {
@@ -58,24 +49,24 @@ const RoomsByHousePage = () => {
   }, [id]);
   console.log('house', house);
 
-  useEffect(() => {
-    if (house?.district) {
-      axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${house.district}`)
-        .then((res) => {
-          console.log('wards:', res.data.wards);
-          setWards(res.data.wards);
-        });
-    }
-  }, [house?.district]);
-  console.log('wards', wards);
-  const ward_path_name = wards.find(w => w.id === house?.ward)?.path_with_type || '';
-  console.log('path_name', ward_path_name);
+  // useEffect(() => {
+  //   if (house?.district) {
+  //     axios.get(`${process.env.REACT_APP_API_URL}/api/address/district/${house.district}`)
+  //       .then((res) => {
+  //         console.log('wards:', res.data.wards);
+  //         setWards(res.data.wards);
+  //       });
+  //   }
+  // }, [house?.district]);
+  // console.log('wards', wards);
+  // const ward_path_name = wards.find(w => w.id === house?.ward)?.path_with_type || '';
+  // console.log('path_name', ward_path_name);
 
   useEffect(() => {
     const fetchCoordinates = async () => {
       if (!house) return;
 
-      const fullAddress = `${house.address_detail ? house.address_detail + ', ' : ''}${house.ward ? ward_path_name : ''}`;
+      const fullAddress = `${typeof house.ward === 'object' ? house.address_detail + ', ' + house.ward.path_with_type : ''}`;
 
       try {
         const coords = await geocodeAddress(fullAddress);
@@ -165,8 +156,7 @@ const RoomsByHousePage = () => {
 
       <p className='mt-[2rem]'>
         <strong className="font-medium">Địa chỉ:  </strong>
-        {house?.address_detail ? house.address_detail + ', ' : ''}
-        {house?.ward ? ward_path_name : ''}
+        {typeof house?.ward === 'object' ? house?.address_detail + ', ' + house?.ward.path_with_type : '' }
       </p>
       {coordinates && coordinates.lat !== undefined && coordinates.lng !== undefined && (
         <div className="aspect-video w-[50%] max-md:w-[100%] mt-[0.8rem]">

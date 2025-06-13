@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { getCSRFToken } from "../utils/cookies";
-import { City, District, House, Ward } from "./interface_type";
+import { getCSRFToken } from "../../utils/cookies";
+import { City, District, House, Ward } from ".././interface_type";
 
 
 interface HouseFormProps {
@@ -24,7 +24,11 @@ const HouseForm: React.FC<HouseFormProps> = ({ onClose, onSuccess, initialData, 
 
   const [selectedCityId, setSelectedCityId] = useState<number | null>(initialData?.city || null);
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(initialData?.district || null);
-  const [selectedWardId, setSelectedWardId] = useState<number | null>(initialData?.ward || null);
+  const [selectedWardId, setSelectedWardId] = useState<number | null>(
+    typeof initialData?.ward === 'object' && initialData.ward !== null && 'id' in initialData.ward
+      ? (initialData.ward as Ward).id
+      : (typeof initialData?.ward === 'number' ? initialData.ward : null)
+  );
 
   console.log('initialData', initialData);
   useEffect(() => {
@@ -61,7 +65,11 @@ const HouseForm: React.FC<HouseFormProps> = ({ onClose, onSuccess, initialData, 
           console.log('wards:', res.data.wards);
           setWards(res.data.wards)
           if (mode === 'edit' && initialData?.ward && !selectedWardId) {
-            setSelectedWardId(initialData.ward);
+            if (typeof initialData.ward === 'object' && initialData.ward !== null && 'id' in initialData.ward) {
+              setSelectedWardId((initialData.ward as Ward).id);
+            } else if (typeof initialData.ward === 'number') {
+              setSelectedWardId(initialData.ward);
+            }
           }
         })
         .catch((err) => console.error('Error fetching wards:', err));

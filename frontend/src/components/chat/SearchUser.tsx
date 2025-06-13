@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Infor, searchUser, User } from "./interface_type";
+import { Infor, searchUser, User } from ".././interface_type";
 
 interface SearchUserProps {
   onSelect: (user: Infor) => void;

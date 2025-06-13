@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Infor, Message } from "./interface_type";
-import { getCSRFToken } from "../utils/cookies";
+import { Infor, Message } from ".././interface_type";
+import { getCSRFToken } from "../../utils/cookies";
 import axios from "axios";
 
 interface ChatBoxProps {
@@ -46,6 +46,14 @@ const ChatBox: React.FC<ChatBoxProps> = ({ userId, partnerId, partnerImage, part
   useEffect(() => {
     fetchMessages(userId, partnerId).then(setMessages);
   }, [userId, partnerId]);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     fetchMessages(userId, partnerId).then(setMessages);
+  //   }, 3000);
+
+  //   return () => clearInterval(interval);
+  // }, [userId, partnerId]);
+
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -57,7 +65,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ userId, partnerId, partnerImage, part
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   return (
     <div className="w-full h-full p-4 relative py-[4rem] ">
       <div className="flex flex-row w-full absolute top-0 left-0 right-0 p-2 bg-white items-center gap-2 ">
@@ -66,7 +74,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ userId, partnerId, partnerImage, part
           {partnerFullName}
         </h1>
       </div>
-      <div className="overflow-y-auto h-full flex flex-col gap-[0.5rem] px-[0.5rem] pb-[1rem]">
+      <div ref={chatContainerRef}  className="overflow-y-auto h-full flex flex-col gap-[0.5rem] px-[0.5rem] pb-[1rem]">
         {messages.map((msg) => {
           const isOwn = msg.sender.id === userId;
           return (

@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from infor.serializers import UserSerializer
 from .models import House, Room, RoomMedia, Post
 from django.contrib.auth.models import User
 
@@ -11,6 +13,18 @@ class HouseSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at', 'owner']
 
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['owner'] = UserSerializer(instance.owner).data
+        if instance.ward:
+            rep['ward'] = {
+                'id': instance.ward.id,
+                'path_with_type': instance.ward.path_with_type
+            }
+        else:
+            rep['ward'] = None
+
+        return rep
 
 class RoomMediaSerializer(serializers.ModelSerializer):
     class Meta:

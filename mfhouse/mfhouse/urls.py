@@ -24,10 +24,10 @@ from house.views import HouseViewSet, PostViewSet, RoomMediaViewSet, RoomViewSet
 from book.views import BookingViewSet
 from bill.views import PaymentViewSet, RefundViewSet
 from constract.views import ContractViewSet
-# from noti.views import NotificationViewSet
+from noti.views import NotificationViewSet
 from chat.views import GetMessages, MyInbox, SendMessages
 from review.views import RatingViewSet, RoomFeedbackViewSet
-from websocket_notifications.api.rest_framework import NotificationGroupViewSet
+# from websocket_notifications.api.rest_framework import NotificationGroupViewSet
 
 
 
@@ -42,8 +42,8 @@ router.register(r'ratings', RatingViewSet)
 router.register(r'room-feedbacks', RoomFeedbackViewSet)
 router.register(r'payments', PaymentViewSet)
 router.register(r'refunds', RefundViewSet)
-# router.register(r'notifications', NotificationViewSet, basename='notification')
-router.register('websocket-notifications/groups', viewset=NotificationGroupViewSet)
+router.register(r'notifications', NotificationViewSet, basename='notification')
+# router.register('websocket-notifications/groups', viewset=NotificationGroupViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

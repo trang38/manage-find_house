@@ -1,4 +1,4 @@
-Xin chào {{ recipient.info.full_name }},
+Xin chào {{ receiver.username }},
 
 {{ actor.user_name }} đã đặt phòng {{ target.room_name }} tại nhà {{ target.house.name }}, địa chỉ: {{ target.house.address_detail }}, {{ target.house.ward }}, {{ target.house.district }}, {{ target.house.city }}.
 

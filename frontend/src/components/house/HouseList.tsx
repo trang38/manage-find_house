@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { getCSRFToken } from "../utils/cookies";
+import { getCSRFToken } from "../../utils/cookies";
 import axios from "axios";
-import GoongMap from "./GoongMap";
+import GoongMap from "../post/GoongMap";
 import HouseForm from "./HouseForm";
-import { City, District, House, Ward } from "./interface_type";
+import { City, District, House, Ward } from "../interface_type";
 import { Link } from "react-router-dom";
 
 const csrftoken = getCSRFToken();
@@ -76,40 +76,40 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
         setHouses(housesData);
 
         // 2. Lấy danh sách id city, district, ward duy nhất
-        const cityIds = Array.from(new Set(housesData.map(h => h.city).filter(Boolean))) as number[];
-        const districtIds = Array.from(new Set(housesData.map(h => h.district).filter(Boolean))) as number[];
-        const wardIds = Array.from(new Set(housesData.map(h => h.ward).filter(Boolean))) as number[];
+        // const cityIds = Array.from(new Set(housesData.map(h => h.city).filter(Boolean))) as number[];
+        // const districtIds = Array.from(new Set(housesData.map(h => h.district).filter(Boolean))) as number[];
+        // const wardIds = Array.from(new Set(housesData.map(h => h.ward).filter(Boolean))) as number[];
 
-        // 3. Fetch cities
-        const citiesRes = await axios.get<City[]>(`${process.env.REACT_APP_API_URL}/api/address/cities`);
-        const citiesData = citiesRes.data.filter(c => cityIds.includes(c.id!));
-        const citiesMapTemp: Record<number, string> = {};
-        citiesData.forEach(c => { if (c.id) citiesMapTemp[c.id] = c.name; });
-        setCitiesMap(citiesMapTemp);
+        // // 3. Fetch cities
+        // const citiesRes = await axios.get<City[]>(`${process.env.REACT_APP_API_URL}/api/address/cities`);
+        // const citiesData = citiesRes.data.filter(c => cityIds.includes(c.id!));
+        // const citiesMapTemp: Record<number, string> = {};
+        // citiesData.forEach(c => { if (c.id) citiesMapTemp[c.id] = c.name; });
+        // setCitiesMap(citiesMapTemp);
 
-        // 4. Fetch districts theo từng city_id, gom lại thành 1 mảng
-        let districtsData: District[] = [];
-        for (const cityId of cityIds) {
-          const res = await axios.get<{ districts: District[] }>(`${process.env.REACT_APP_API_URL}/api/address/city/${cityId}`);
-          districtsData = districtsData.concat(res.data.districts);
-        }
-        // Lọc districts theo districtIds, tạo map id=>name
-        districtsData = districtsData.filter(d => districtIds.includes(d.id));
-        const districtsMapTemp: Record<number, string> = {};
-        districtsData.forEach(d => { districtsMapTemp[d.id] = d.name; });
-        setDistrictsMap(districtsMapTemp);
+        // // 4. Fetch districts theo từng city_id, gom lại thành 1 mảng
+        // let districtsData: District[] = [];
+        // for (const cityId of cityIds) {
+        //   const res = await axios.get<{ districts: District[] }>(`${process.env.REACT_APP_API_URL}/api/address/city/${cityId}`);
+        //   districtsData = districtsData.concat(res.data.districts);
+        // }
+        // // Lọc districts theo districtIds, tạo map id=>name
+        // districtsData = districtsData.filter(d => districtIds.includes(d.id));
+        // const districtsMapTemp: Record<number, string> = {};
+        // districtsData.forEach(d => { districtsMapTemp[d.id] = d.name; });
+        // setDistrictsMap(districtsMapTemp);
 
-        // 5. Fetch wards theo từng district_id
-        let wardsData: Ward[] = [];
-        for (const districtId of districtIds) {
-          const res = await axios.get<{ wards: Ward[] }>(`${process.env.REACT_APP_API_URL}/api/address/district/${districtId}`);
-          wardsData = wardsData.concat(res.data.wards);
-        }
-        wardsData = wardsData.filter(w => wardIds.includes(w.id));
-        const wardsMapTemp: Record<number, string> = {};
-        // wardsData.forEach(w => { wardsMapTemp[w.id] = w.name; });
-        wardsData.forEach(w => { wardsMapTemp[w.id] = w.path_with_type; });
-        setWardsMap(wardsMapTemp);
+        // // 5. Fetch wards theo từng district_id
+        // let wardsData: Ward[] = [];
+        // for (const districtId of districtIds) {
+        //   const res = await axios.get<{ wards: Ward[] }>(`${process.env.REACT_APP_API_URL}/api/address/district/${districtId}`);
+        //   wardsData = wardsData.concat(res.data.wards);
+        // }
+        // wardsData = wardsData.filter(w => wardIds.includes(w.id));
+        // const wardsMapTemp: Record<number, string> = {};
+        // // wardsData.forEach(w => { wardsMapTemp[w.id] = w.name; });
+        // wardsData.forEach(w => { wardsMapTemp[w.id] = w.path_with_type; });
+        // setWardsMap(wardsMapTemp);
 
         setLoading(false);
       } catch (error) {
@@ -123,13 +123,12 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
 
   useEffect(() => {
     const fetchCoordinates = async () => {
-      if (houses.length === 0 || Object.keys(wardsMap).length === 0 || Object.keys(districtsMap).length === 0 || Object.keys(citiesMap).length === 0) return;
+      if (houses.length === 0) return;
 
       const coordsMapTemp: Record<number, { lat: number, lng: number }> = {};
 
       await Promise.all(houses.map(async (house) => {
-        // const fullAddress = `${house.address_detail ? house.address_detail + ', ' : ''}${house.ward ? wardsMap[house.ward] + ', ' : ''}${house.district ? districtsMap[house.district] + ', ' : ''}${house.city ? citiesMap[house.city] : ''}`;
-        const fullAddress = `${house.address_detail ? house.address_detail + ', ' : ''}${house.ward ? wardsMap[house.ward] : ''}`;
+        const fullAddress = `${house.address_detail ? house.address_detail + ', ' : ''}${typeof house.ward === 'object' && house.ward.path_with_type ? house.ward.path_with_type : ''}`;
         try {
           const coords = await geocodeAddress(fullAddress);
           coordsMapTemp[house.id] = coords;
@@ -189,7 +188,7 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
                 <p>
                   <strong className="font-medium">Địa chỉ:  </strong>
                   {house.address_detail ? house.address_detail + ', ' : ''}
-                  {house.ward ? wardsMap[house.ward] : ''}
+                  {typeof house.ward === 'object' && house.ward.path_with_type ? house.ward.path_with_type : ''}
                 </p>
                 {coordinatesMap[house.id] && (
                   <div className="aspect-video w-[50%] max-md:w-[100%] mt-[0.8rem]">

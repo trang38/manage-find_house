@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import HouseForm from "../components/HouseForm";
-import HousesList from "../components/HouseList";
+import HouseForm from "../components/house/HouseForm";
+import HousesList from "../components/house/HouseList";
 
 
 const ManageHouse: React.FC = () => {
