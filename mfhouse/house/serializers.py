@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from infor.serializers import UserSerializer
+from review.serializers import RatingSerializer
 from .models import House, Room, RoomMedia, Post
 from django.contrib.auth.models import User
 
@@ -35,16 +36,22 @@ class RoomSerializer(serializers.ModelSerializer):
     media = RoomMediaSerializer(many=True, read_only=True)
     house = serializers.PrimaryKeyRelatedField(queryset=House.objects.all())
     post_id = serializers.SerializerMethodField()
+    ratings = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
-        fields = [field.name for field in Room._meta.fields] + ['media', 'post_id']
+        fields = [field.name for field in Room._meta.fields] + ['media', 'post_id', 'ratings']
         read_only_fields = ['updated_at']
 
     def get_post_id(self, obj):
         from .models import Post
         post = Post.objects.filter(room=obj).first()
         return post.id if post else None
+    
+    def get_ratings(self, obj):
+        from review.models import Rating
+        ratings = Rating.objects.filter(contract__room=obj)
+        return RatingSerializer(ratings, many=True, context=self.context).data
     
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -58,7 +65,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at', 'is_active']
+        read_only_fields = ['created_at', 'updated_at']
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)

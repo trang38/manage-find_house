@@ -2,19 +2,16 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { getCSRFToken } from '../utils/cookies';
+import { Notification } from './interface_type';
 
-interface Notification {
-  id: number;
-  message: string;
-  type: string;
-  created_at: string;
-  is_read?: boolean;
-  receiver: number;
-}
 
 interface NotificationModalProps {
   open: boolean;
   onClose: () => void;
+  // setUnreadCount?: (n: number) => void;
+  notifications: Notification[];
+  // setNotifications: (n: Notification[]) => void;
+  onRead: (noti: Notification) => void;
 }
 
 const typeToPath = (noti: Notification) => {
@@ -25,33 +22,37 @@ const typeToPath = (noti: Notification) => {
       return '/contracts';
     case 'bill':
       return '/bills';
-    case 'review':
-      return '/reviews';
     case 'chat':
       return '/chat';
     default:
       return '/';
   }
 };
+
 const csrftoken = getCSRFToken();
-const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, notifications, onRead }) => {
+  // const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (open) {
-      setLoading(true);
-      axios.get(`${process.env.REACT_APP_API_URL}/api/notifications/`, { withCredentials: true, headers: { 'X-CSRFToken': csrftoken || '' } })
-        .then(res => setNotifications(res.data))
-        .finally(() => setLoading(false));
-    }
-  }, [open]);
+  // useEffect(() => {
+  //   if (open) {
+  //     setLoading(true);
+  //     axios.get(`${process.env.REACT_APP_API_URL}/api/notifications/`, { withCredentials: true, headers: { 'X-CSRFToken': csrftoken || '' } })
+  //       .then(res => {setNotifications(res.data);
+  //         if (typeof setUnreadCount === 'function') {
+  //         const unread = res.data.filter((n: Notification) => !n.is_read).length;
+  //         setUnreadCount(unread);
+  //       }
+  //       })
+  //       .finally(() => setLoading(false));
+  //   }
+  // }, [open]);
 
   const handleClick = async (noti: Notification) => {
     // Update is_read
     if (!noti.is_read) {
-      await axios.patch(`${process.env.REACT_APP_API_URL}/api/notifications/${noti.id}/`, { is_read: true }, { withCredentials: true, headers: { 'X-CSRFToken': csrftoken || '' } });
+      await onRead(noti);
     }
     onClose();
     navigate(typeToPath(noti));
@@ -78,7 +79,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
                   onClick={() => handleClick(noti)}
                 >
                   <div className="flex items-center gap-2">
-                    {!noti.is_read && <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>}
+                    {!noti.is_read && <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0"></span>}
                     <span className="text-base ">{noti.message}</span>
                   </div>
                   <div className="text-xs text-gray-400 mt-1">{new Date(noti.created_at).toLocaleString()}</div>

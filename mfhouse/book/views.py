@@ -23,10 +23,12 @@ from django.db.models import Q
 class BookingFilter(filters.FilterSet):
     owner_id = filters.NumberFilter(field_name="post__room__house__owner__id")
     tenant_id = filters.NumberFilter(field_name="tenant")
+    status = filters.CharFilter(field_name="status")
+    room = filters.NumberFilter(field_name="post__room__id")
 
     class Meta:
         model = Booking
-        fields = ['owner_id', 'tenant_id']
+        fields = ['owner_id', 'tenant_id', 'status', 'room']
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
@@ -41,28 +43,22 @@ class BookingViewSet(viewsets.ModelViewSet):
                                     message=f"{self.request.user.username} đã đặt phòng {post.room.room_name} tại {post.room.house.name}",
                                     type="booking")
         
-        send_mail(
-                subject=f"Phòng {post.room.room_name} tại nhà {post.room.house.name} có một yêu cầu đặt phòng mới",
-                message=f"Phòng {post.room.room_name} tại nhà {post.room.house.name} đã nhận được một yêu cầu đặt phòng mới từ {self.request.user.username}. Vui lòng kiểm tra website để biết thêm chi tiết.",
-                from_email=os.getenv('EMAIL_HOST_USER'),
-                recipient_list=[post.room.house.owner.email],
-                fail_silently=False,
-            )
+        # send_mail(
+        #         subject=f"Phòng {post.room.room_name} tại nhà {post.room.house.name} có một yêu cầu đặt phòng mới",
+        #         message=f"Phòng {post.room.room_name} tại nhà {post.room.house.name} đã nhận được một yêu cầu đặt phòng mới từ {self.request.user.username}. Vui lòng kiểm tra website để biết thêm chi tiết.",
+        #         from_email=os.getenv('EMAIL_HOST_USER'),
+        #         recipient_list=[post.room.house.owner.email],
+        #         fail_silently=False,
+        #     )
         
-        send_mail(
-                subject=f"Đặt phòng thành công",
-                message=f"Bạn đã đặt thành công 1 phòng tại địa chỉ: {post.room.house.address_detail}. Vui lòng chờ chủ nhà xác nhận yêu cầu đặt phòng của bạn. Nếu có bất kỳ thắc mắc nào hãy liên hệ với chủ nhà qua website.",
-                from_email=os.getenv('EMAIL_HOST_USER'),
-                recipient_list=[self.request.user.email],
-                fail_silently=False,
-            )
-        print("PERFORM_CREATE CALLED")
+        # send_mail(
+        #         subject=f"Đặt phòng thành công",
+        #         message=f"Bạn đã đặt thành công 1 phòng tại địa chỉ: {post.room.house.address_detail}. Vui lòng chờ chủ nhà xác nhận yêu cầu đặt phòng của bạn. Nếu có bất kỳ thắc mắc nào hãy liên hệ với chủ nhà qua website.",
+        #         from_email=os.getenv('EMAIL_HOST_USER'),
+        #         recipient_list=[self.request.user.email],
+        #         fail_silently=False,
+        #     )
 
-        # snitch.explicit_dispatch(
-        #     verb='booking_created_landlord',
-        #     actor=self.request.user,
-        #     target=post.room
-        # )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -96,7 +92,17 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.status = 'cancelled'
         booking.updated_at = timezone.now()
         booking.save()
-
+        Notification.objects.create(receiver=post.room.house.owner, 
+                                    message=f"Người dùng {self.request.user.username} đã hủy bỏ yêu cầu đặt phòng {post.room.room_name} tại {post.room.house.name}",
+                                    type="booking")
+        
+        # send_mail(
+        #         subject=f"Một yêu cầu đặt phòng đã bị hủy bỏ",
+        #         message=f"Người dùng {self.request.user.username} đã hủy bỏ yêu cầu đặt phòng {post.room.room_name} tại {post.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết.",
+        #         from_email=os.getenv('EMAIL_HOST_USER'),
+        #         recipient_list=[post.room.house.owner.email],
+        #         fail_silently=False,
+        #     )
 
         return Response({'detail': 'Yêu cầu đặt phòng đã được hủy.'}, status=status.HTTP_200_OK)
     
@@ -126,21 +132,21 @@ class BookingViewSet(viewsets.ModelViewSet):
                                     message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} chấp nhận. Vui lòng đợi chủ nhà tạo hợp đồng.",
                                     type="booking")
         
-        send_mail(
-                subject=f"Yêu cầu đặt phòng của bạn đã được chấp nhận",
-                message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} của bạn lúc {booking.booking_at} đã được chấp nhận. Vui lòng kiểm tra website để biết thêm chi tiết và hoàn thiện hợp đồng.",
-                from_email=os.getenv('EMAIL_HOST_USER'),
-                recipient_list=[booking.tenant.email],
-                fail_silently=False,
-            )
+        # send_mail(
+        #         subject=f"Yêu cầu đặt phòng của bạn đã được chấp nhận",
+        #         message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} của bạn lúc {booking.booking_at} đã được chấp nhận. Vui lòng kiểm tra website để biết thêm chi tiết và hoàn thiện hợp đồng.",
+        #         from_email=os.getenv('EMAIL_HOST_USER'),
+        #         recipient_list=[booking.tenant.email],
+        #         fail_silently=False,
+        #     )
         
-        send_mail(
-                subject=f"Tạo hợp đồng mới",
-                message=f"Bạn đã chấp nhận yêu cầu đặt phòng của {booking.tenant.username}. Vui lòng truy cập website để hoàn thiện hợp đồng.",
-                from_email=os.getenv('EMAIL_HOST_USER'),
-                recipient_list=[self.request.user.email],
-                fail_silently=False,
-            )        
+        # send_mail(
+        #         subject=f"Tạo hợp đồng mới",
+        #         message=f"Bạn đã chấp nhận yêu cầu đặt phòng của {booking.tenant.username}. Vui lòng truy cập website để hoàn thiện hợp đồng.",
+        #         from_email=os.getenv('EMAIL_HOST_USER'),
+        #         recipient_list=[self.request.user.email],
+        #         fail_silently=False,
+        #     )        
         
         return Response({'detail': 'Booking đã được chấp nhận và hợp đồng đã được tạo.'}, status=status.HTTP_200_OK)
 
@@ -161,12 +167,12 @@ class BookingViewSet(viewsets.ModelViewSet):
                                     message=f"Phòng bạn đặt tại bài đăng {booking.post.title} đã bị từ chối.",
                                     type="booking")
         
-        send_mail(
-                subject=f"Yêu cầu đặt phòng đã bị từ chối",
-                message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} của bạn lúc {booking.booking_at} đã bị từ chối. Bạn có thể truy cập website và tìm kiếm nhà trọ phù hợp hơn.",
-                from_email=os.getenv('EMAIL_HOST_USER'),
-                recipient_list=[booking.tenant.email],
-                fail_silently=False,
-            )
+        # send_mail(
+        #         subject=f"Yêu cầu đặt phòng đã bị từ chối",
+        #         message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} của bạn lúc {booking.booking_at} đã bị từ chối. Bạn có thể truy cập website và tìm kiếm nhà trọ phù hợp hơn.",
+        #         from_email=os.getenv('EMAIL_HOST_USER'),
+        #         recipient_list=[booking.tenant.email],
+        #         fail_silently=False,
+        #     )
         
         return Response({'detail': 'Booking đã bị từ chối.'}, status=status.HTTP_200_OK)

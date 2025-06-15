@@ -22,7 +22,7 @@ from rest_framework.routers import DefaultRouter
 from infor.views import CurrentUserAPIView, PublicUserAPIView, SearchUserAPIView
 from house.views import HouseViewSet, PostViewSet, RoomMediaViewSet, RoomViewSet
 from book.views import BookingViewSet
-from bill.views import PaymentViewSet, RefundViewSet
+from bill.views import PaymentViewSet
 from constract.views import ContractViewSet
 from noti.views import NotificationViewSet
 from chat.views import GetMessages, MyInbox, SendMessages
@@ -41,7 +41,7 @@ router.register(r'contracts', ContractViewSet)
 router.register(r'ratings', RatingViewSet)
 router.register(r'room-feedbacks', RoomFeedbackViewSet)
 router.register(r'payments', PaymentViewSet)
-router.register(r'refunds', RefundViewSet)
+# router.register(r'refunds', RefundViewSet)
 router.register(r'notifications', NotificationViewSet, basename='notification')
 # router.register('websocket-notifications/groups', viewset=NotificationGroupViewSet)
 
@@ -66,5 +66,5 @@ urlpatterns +=static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
-# for url in router.urls:
-#     print(f"{url.pattern} => {url.name}")
+for url in router.urls:
+    print(f"{url.pattern} => {url.name}")

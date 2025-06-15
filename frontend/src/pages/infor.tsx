@@ -2,7 +2,7 @@ import LogoutButton from "../components/LogoutButton";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getCSRFToken } from "../utils/cookies";
-import { City, District, Infor, User, Ward } from "../components/interface_type";
+import { Bank, City, District, getBankName, Infor, User, Ward } from "../components/interface_type";
 
 
 type ToggleField = 'show_bio' | 'show_phone_number' | 'show_address';
@@ -22,6 +22,7 @@ const CurrentUserProfile: React.FC = () => {
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null);
   const [selectedWardId, setSelectedWardId] = useState<number | null>(null);
 
+  const [banks, setBanks] = useState<Bank[]>([]);
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_API_URL}/api/profile/me/`, {
       withCredentials: true
@@ -40,6 +41,7 @@ const CurrentUserProfile: React.FC = () => {
         console.error('Error fetching user', err);
       })
       .finally(() => setLoading(false));
+    axios.get('https://api.vietqr.io/v2/banks').then(res => setBanks(res.data.data));
   }, []);
 
   useEffect(() => {
@@ -149,7 +151,21 @@ const CurrentUserProfile: React.FC = () => {
       ) {
         return;
       }
-
+    if (key === 'ward') {
+      let wardValue = value;
+      if (typeof wardValue === 'string') wardValue = parseInt(wardValue, 10);
+      if (
+        typeof wardValue === 'object' &&
+        wardValue !== null &&
+        'id' in wardValue
+      ) {
+        wardValue = (wardValue as Ward).id;
+      }
+      if (wardValue !== null && wardValue !== undefined) {
+          data.append(key, wardValue.toString());
+      }
+      return;
+    }
       if (value !== null && value !== undefined) {
         if (value instanceof File) {
           data.append(key, value);
@@ -184,12 +200,6 @@ const CurrentUserProfile: React.FC = () => {
 
   const { infor } = user;
 
-  // const cityName = cities.find(city => city.id === selectedCityId)?.name || '';
-  // const districtName = districts.find(d => d.id === infor.district)?.name || '';
-  // const wardName = wards.find(w => w.id === infor.ward)?.path_with_type || '';
-  // console.log('wardName', wardName);
-  // console.log('cityName', cityName);
-  // console.log('districtName', districtName);
   return (
     <div className="mx-auto px-[6rem] min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem]">
       <div className="flex items-center justify-center">
@@ -328,7 +338,18 @@ const CurrentUserProfile: React.FC = () => {
           </div>
           <div>
             <label className="text-[#006400] font-bold">Tên ngân hàng:</label>
-            <input type="text" name="bank_name" value={formData.bank_name || ''} onChange={handleChange} className="w-full border p-2 rounded" />
+            {/* <input type="text" name="bank_name" value={formData.bank_name || ''} onChange={handleChange} className="w-full border p-2 rounded" /> */}
+            <select
+              className=""
+              name='bank_name'
+              value={formData.bank_name || ''}
+              onChange={handleChange}
+            >
+              <option value="">Chọn ngân hàng</option>
+              {banks.map(bank => (
+                <option key={bank.bin} value={bank.bin}>{bank.name} - {bank.short_name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center justify-center">
@@ -367,7 +388,7 @@ const CurrentUserProfile: React.FC = () => {
           </p>
           <p><strong className="text-[#006400] font-bold">Số tài khoản ngân hàng:  </strong>{infor.bank_account && `${infor.bank_account}`}</p>
           <p><strong className="text-[#006400] font-bold">Tên tài khoản ngân hàng:  </strong>{infor.bank_account_name && `${infor.bank_account_name}`}</p>
-          <p><strong className="text-[#006400] font-bold">Tên ngân hàng:  </strong>{infor.bank_name && `${infor.bank_name}`}</p>
+          <p><strong className="text-[#006400] font-bold">Tên ngân hàng:  </strong>{getBankName(infor.bank_name ?? '', banks)}</p>
           <p><strong className="text-[#006400] font-bold">Loại tài khoản:  </strong>
             {infor.role === 'tenant' ? (
               <>Người thuê</>

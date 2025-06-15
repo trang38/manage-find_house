@@ -1,4 +1,5 @@
-from datetime import date, timezone
+from datetime import date
+from django.utils import timezone
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from house.models import Room
@@ -29,6 +30,7 @@ class Contract(models.Model):
     landlord_completed = models.BooleanField(default=False)  # Landlord đã điền thông tin
     tenant_completed = models.BooleanField(default=False)  # Tenant đã điền thông tin
     landlord_confirm = models.BooleanField(default=False) # landlord xác nhận thôg tin của tenant ok hết
+    tenant_confirm = models.BooleanField(default=False)
     revision_requested_lanlord = models.BooleanField(default=False) # landlord yêu cầu tenant sửa hợp đồng
     revision_requested_tenant = models.BooleanField(default=False) # tenant yêu cầu landlord sửa hợp đồng
     revision_reason = models.TextField(null=True, blank=True)
@@ -44,7 +46,7 @@ class Contract(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    end_at = models.DateTimeField(null=True, blank=True) # ngày kết thúc hợp đồng thực tế
+    end_at = models.DateTimeField(null=True, blank=True) 
     status = models.CharField(max_length=20, choices=STATUS, default='creating')
     data = models.JSONField(default=dict, blank=True)
 
@@ -87,6 +89,7 @@ class Contract(models.Model):
             self.landlord_completed and
             self.tenant_completed and
             self.landlord_confirm and
+            self.tenant_confirm and
             not self.completed_at
         )
 
@@ -96,7 +99,12 @@ class Contract(models.Model):
             # Gán completed_at tạm thời vì updated_at chưa có
             self.completed_at = timezone.now()
             self.status = 'completed'
-
+            self.booking.post.is_active = False
+            self.booking.post.save(update_fields=['is_active'])
+            self.room.is_posted = False
+            self.room.status = 'occupied'
+            self.room.save(update_fields=['is_posted', 'status'])
+            
             # Lưu snapshot vào JSONField
             self.data = {
                 "landlord_fullname": self.landlord.infor.full_name,
@@ -105,13 +113,13 @@ class Contract(models.Model):
                 "landlord_address_detail": self.landlord.infor.address_detail,
                 "landlord_phone_number": self.landlord.infor.phone_number,
                 "landlord_national_id": self.landlord.infor.national_id,
-                "landlord_national_id_date": self.landlord.infor.national_id_date,
+                "landlord_national_id_date": self.landlord.infor.national_id_date.isoformat(),
                 "landlord_national_id_address": self.landlord.infor.national_id_address,
-                "landlord_id_front_image": self.landlord.infor.id_front_image,
-                "landlord_id_back_image": self.landlord.infor.id_back_image,
+                "landlord_id_front_image": self.landlord.infor.id_front_image.url,
+                "landlord_id_back_image": self.landlord.infor.id_back_image.url,
                 "landlord_bank_name": self.landlord.infor.bank_name or "",
                 "landlord_bank_account": self.landlord.infor.bank_account or "",
-                "landlord_bank_account_name": self.landlord.infor.bank_branch or "",
+                "landlord_bank_account_name": self.landlord.infor.bank_account_name or "",
 
                 "tenant_fullname": self.tenant.infor.full_name,
                 "tenant_email": self.tenant.email,
@@ -119,13 +127,13 @@ class Contract(models.Model):
                 "tenant_address_detail": self.tenant.infor.address_detail,
                 "tenant_phone_number": self.tenant.infor.phone_number,
                 "tenant_national_id": self.tenant.infor.national_id,
-                "tenant_national_id_date": self.tenant.infor.national_id_date,
+                "tenant_national_id_date": self.tenant.infor.national_id_date.isoformat(),
                 "tenant_national_id_address": self.tenant.infor.national_id_address,
-                "tenant_id_front_image": self.tenant.infor.id_front_image,
-                "tenant_id_back_image": self.tenant.infor.id_back_image,
+                "tenant_id_front_image": self.tenant.infor.id_front_image.url,
+                "tenant_id_back_image": self.tenant.infor.id_back_image.url,
                 "tenant_bank_name": self.tenant.infor.bank_name or "",
                 "tenant_bank_account": self.tenant.infor.bank_account or "",
-                "tenant_bank_account_name": self.tenant.infor.bank_branch or "",
+                "tenant_bank_account_name": self.tenant.infor.bank_account_name or "",
 
                 "room_ward": self.room.house.ward.path_with_type,
                 "room_address_detail" : self.room.house.address_detail,
@@ -135,9 +143,10 @@ class Contract(models.Model):
                 "room_electric": self.room.electric,
                 "room_water": self.room.water,
                 "room_service_price": self.room.service_price,
-                "room_area": self.room.area,
+                "room_area": float(self.room.area),
                 "room_amenities": self.room.amenities,
                 "room_description": self.room.description,
+
                 "start_date": self.start_date.isoformat() if self.start_date else None,
                 "end_date": self.end_date.isoformat() if self.end_date else None,
                 "payment_day": self.payment_day,
@@ -151,6 +160,8 @@ class Contract(models.Model):
         if self.completed_at and self.completed_at != self.updated_at:
             Contract.objects.filter(pk=self.pk).update(completed_at=self.updated_at)
             self.completed_at = self.updated_at
+
+        
 
     @property
     def remaining_time(self):
@@ -168,6 +179,11 @@ class Contract(models.Model):
             return False
         today = date.today()
         remaining_days = (self.end_date - today).days
-        if remaining_days == 0:
+        if remaining_days == 0 and self.status != 'end':
             self.status = 'end'
-        return remaining_days == 30 or remaining_days == 7
+            self.save(update_fields=['status'])
+        if remaining_days < 30:
+            if self.room and self.room.status != 'checkout_soon':
+                self.room.status = 'checkout_soon'
+                self.room.save(update_fields=['status'])
+        return remaining_days == 30 or remaining_days == 7 or remaining_days == 25 or remaining_days == 26

@@ -49,7 +49,7 @@ const ContractList: React.FC = () => {
     };
     fetchContracts();
   }, [authData?.user?.id]);
-  
+
   const handleContactOwner = (owner: User) => {
     if (!isAuthenticated) {
       window.open('/auth/login');
@@ -102,7 +102,7 @@ const ContractList: React.FC = () => {
                       </button>
                     </div>
                     <div className="text-gray-500 text-sm">Tạo lúc: {b.created_at.split('T')[0]} {b.created_at.split('T')[1].slice(0, 5)} | Cập nhật: {b.updated_at.split('T')[0]} {b.updated_at.split('T')[1].slice(0, 5)}</div>
-                    <div className="">Trạng thái: {CONTRACT_STATUS_TYPE_MAP[b.status]}</div>
+                    <div className={`${CONTRACT_STATUS_TYPE_CSS_MAP[b.status]}`}>Trạng thái: {CONTRACT_STATUS_TYPE_MAP[b.status]}</div>
                   </div>
 
                 </li>
@@ -134,14 +134,19 @@ const ContractList: React.FC = () => {
                     <Link to={`/contracts/${b.id}`} className='text-[#006400] hover:underline text-xl'>
                       HD-{b.created_at.split('T')[0].split('-').join('')}-{b.id}
                     </Link>
+                    <div className="">
+                      Thông tin phòng: phòng-{b.room?.room_name}, nhà-{typeof b.room?.house === 'object' && b.room?.house !== null ? (b.room?.house as { name?: string }).name : ''}
+                    </div>
                     <div className="flex flex-row gap-[.5rem] items-center">Thông tin chủ phòng:
-                      <Link to={`/profile/users/${b.landlord.username}`} className='text-blue-300 hover:underline'>{b.landlord.infor.full_name}</Link></div>
-                    <button
-                      onClick={() => handleContactOwner(b.landlord)}
-                      className="w-[1.5rem] h-[1.5rem]"
-                    >
-                      <img src={process.env.PUBLIC_URL + '/icons8-chat-bubble-50.png'} alt="Liên hệ chủ phòng" />
-                    </button>
+                      <Link to={`/profile/users/${b.landlord.username}`} className='text-blue-300 hover:underline'>{b.landlord.infor.full_name}</Link>
+                      <button
+                        onClick={() => handleContactOwner(b.landlord)}
+                        className="w-[1.5rem] h-[1.5rem]"
+                      >
+                        <img src={process.env.PUBLIC_URL + '/icons8-chat-bubble-50.png'} alt="Liên hệ chủ phòng" />
+                      </button>
+                    </div>
+
                     <div className="text-gray-500 text-sm">Tạo lúc: {b.created_at.split('T')[0]} {b.created_at.split('T')[1].slice(0, 5)} | Cập nhật: {b.updated_at.split('T')[0]} {b.updated_at.split('T')[1].slice(0, 5)}</div>
                     <div className={`${CONTRACT_STATUS_TYPE_CSS_MAP[b.status]}`}>Trạng thái: {CONTRACT_STATUS_TYPE_MAP[b.status]}</div>
                   </div>

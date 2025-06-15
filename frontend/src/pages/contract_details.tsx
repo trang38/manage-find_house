@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { City, Contract, CONTRACT_STATUS_TYPE_MAP, District, Room, User, Ward } from "../components/interface_type";
+import { Bank, Bill, City, Contract, CONTRACT_STATUS_TYPE_MAP, District, Room, User, Ward } from "../components/interface_type";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { getCSRFToken } from "../utils/cookies";
@@ -9,6 +9,11 @@ import LandlordSection from '../components/contract/LandlordSection';
 import TenantSection from '../components/contract/TenantSection';
 import RoomSection from '../components/contract/RoomSection';
 import ContractTermsSection from '../components/contract/ContractTermsSection';
+import RequestRevisionModal from "../components/contract/RequestRevisionModal";
+import ExtendContractModal from "../components/contract/ExtendContractModal";
+import VietQRComponent from "../components/bill/VietQR";
+import BillDetails from "../components/bill/BillDetails";
+import { ContractReviewSection } from "../components/review/ReviewSection";
 
 const csrftoken = getCSRFToken();
 const ContractDetail = () => {
@@ -20,6 +25,20 @@ const ContractDetail = () => {
   const [landlord, setLandlord] = useState<User>();
   const [room, setRoom] = useState<Room>();
   const navigate = useNavigate();
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const isOwner = isAuthenticated && contract?.landlord.username === authData?.user?.username;
+  const [editMode, setEditMode] = useState<{ tenant: boolean, landlord: boolean, room: boolean, contract: boolean }>({ tenant: false, landlord: false, room: false, contract: false });
+  const [tenantEdit, setTenantEdit] = useState<any>({});
+  const [landlordEdit, setLandlordEdit] = useState<any>({});
+  const [roomEdit, setRoomEdit] = useState<any>({});
+  const [contractEdit, setContractEdit] = useState<any>({});
+  const [showRevisionModal, setShowRevisionModal] = useState(false);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [showCreateBill, setShowCreateBill] = useState(false);
+  const [billForm, setBillForm] = useState({ electric_num: '', water_fee: '', extra_fees: '', content: '' });
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [showBillModal, setShowBillModal] = useState(false);
 
   // Function to reload contract details
   const fetchContractDetails = async () => {
@@ -76,15 +95,8 @@ const ContractDetail = () => {
 
   useEffect(() => {
     fetchContractDetails();
+    axios.get('https://api.vietqr.io/v2/banks').then(res => setBanks(res.data.data));
   }, [id]);
-
-  const isOwner = isAuthenticated && contract?.landlord.username === authData?.user?.username;
-
-  const [editMode, setEditMode] = useState<{ tenant: boolean, landlord: boolean, room: boolean, contract: boolean }>({ tenant: false, landlord: false, room: false, contract: false });
-  const [tenantEdit, setTenantEdit] = useState<any>({});
-  const [landlordEdit, setLandlordEdit] = useState<any>({});
-  const [roomEdit, setRoomEdit] = useState<any>({});
-  const [contractEdit, setContractEdit] = useState<any>({});
 
   // Custom hook to select address và upload image (used for landlord/tenant)
   function useAddressAndImageEdit(initEdit: any) {
@@ -155,13 +167,11 @@ const ContractDetail = () => {
     };
   }
 
-
   const landlordAddress = useAddressAndImageEdit(landlordEdit);
   useEffect(() => { if (editMode.landlord) landlordAddress.preload(landlordEdit); }, [editMode.landlord]);
 
   const tenantAddress = useAddressAndImageEdit(tenantEdit);
   useEffect(() => { if (editMode.tenant) tenantAddress.preload(tenantEdit); }, [editMode.tenant]);
-
 
   const handleSaveTenant = async () => {
     // Validate các trường bắt buộc
@@ -246,7 +256,7 @@ const ContractDetail = () => {
       setEditMode((prev: any) => ({ ...prev, room: false }));
       // Reload room data
       if (contract?.room) {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/rooms/${contract.room}/`, {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/rooms/${contract.room.id}/`, {
           withCredentials: true,
           headers: {
             'X-CSRFToken': csrftoken || '',
@@ -353,9 +363,138 @@ const ContractDetail = () => {
     }
   }
 
+  const handleMarkCompleted = async () => {
+    if (isOwner) {
+      try {
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/contracts/${contract?.id}/mark_landlord_completed/`, {},
+          {
+            withCredentials: true,
+            headers: {
+              'X-CSRFToken': csrftoken || '',
+            },
+          });
+        fetchContractDetails();
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Có lỗi xảy ra');
+      }
+    } else {
+      try {
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/contracts/${contract?.id}/mark_tenant_completed/`, {}, {
+          withCredentials: true,
+          headers: {
+            'X-CSRFToken': csrftoken || '',
+          },
+        });
+        fetchContractDetails();
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Có lỗi xảy ra');
+      }
+    }
+  }
+
+  const approveFinal = async () => {
+    if (isOwner) {
+      try {
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/contracts/${contract?.id}/approve_final_landlord/`, {}, {
+          withCredentials: true,
+          headers: {
+            'X-CSRFToken': csrftoken || '',
+          },
+        });
+        fetchContractDetails();
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Có lỗi xảy ra');
+      }
+    } else {
+      try {
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/contracts/${contract?.id}/approve_final_tenant/`, {}, {
+          withCredentials: true,
+          headers: {
+            'X-CSRFToken': csrftoken || '',
+          },
+        });
+        fetchContractDetails();
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Có lỗi xảy ra');
+      }
+    }
+  }
+
+  const cancel = async () => {
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/contracts/${contract?.id}/cancel/`, {}, {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': csrftoken || '',
+        },
+      });
+      fetchContractDetails();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Có lỗi xảy ra');
+    }
+  }
+
+  const handleExtend = async (newEndDate: string) => {
+    if (!contract?.id) return;
+    if (!newEndDate || !contract.end_date || newEndDate <= contract.end_date) {
+      toast.error('Ngày kết thúc mới phải lớn hơn ngày cũ!');
+      return;
+    }
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/contracts/${contract.id}/extend/`, { new_end_date: newEndDate }, {
+        withCredentials: true,
+        headers: { 'X-CSRFToken': csrftoken || '' },
+      });
+      toast.success('Gia hạn hợp đồng thành công!');
+      setShowExtendModal(false);
+      fetchContractDetails();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Gia hạn hợp đồng thất bại!');
+    }
+  };
+
+  const fetchBills = async () => {
+    if (!contract?.id) return;
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/payments/?contract=${contract.id}`, {
+        withCredentials: true,
+        headers: { 'X-CSRFToken': csrftoken || '' },
+      });
+      setBills(res.data);
+    } catch (err) {
+      toast.error('Không thể tải danh sách hóa đơn!');
+    }
+  };
+
+  useEffect(() => {
+    if (contract?.id) fetchBills();
+  }, [contract?.id]);
+
+  const handleCreateBill = async () => {
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/payments/`, {
+        contract: contract?.id,
+        electric_num: billForm.electric_num ? Number(billForm.electric_num) : 0,
+        water_fee: billForm.water_fee ? Number(billForm.water_fee) : 0,
+        extra_fees: billForm.extra_fees ? Number(billForm.extra_fees) : 0,
+        content: billForm.content,
+      }, {
+        withCredentials: true,
+        headers: { 'X-CSRFToken': csrftoken || '' },
+      });
+      toast.success('Tạo hóa đơn thành công!');
+      setShowCreateBill(false);
+      setBillForm({ electric_num: '', water_fee: '', extra_fees: '', content: '' });
+      fetchBills();
+    } catch (err) {
+      toast.error('Tạo hóa đơn thất bại!');
+    }
+  };
+
   return (
     <div className="mx-auto min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem] w-fit flex flex-row max-xl:flex-col">
       <div className="w-[1000px] max-lg:max-w-[100%] max-lg:px-[1.5rem]">
+        {/* header of contract */}
         <div className="flex flex-col max-auto items-center justify-center">
           <h1 className="font-bold text-2xl uppercase">Thông tin hợp đồng</h1>
           <small>Mã HD: HD-{contract?.created_at.split('T')[0].split('-').join('')}-{contract?.id}</small>
@@ -364,9 +503,9 @@ const ContractDetail = () => {
             <span>{contract?.status ? CONTRACT_STATUS_TYPE_MAP[contract.status] : ''}</span>
           </div>
         </div>
-
         <LandlordSection
           data={landlord}
+          banks={banks}
           editMode={editMode.landlord}
           editData={landlordEdit}
           setEditData={setLandlordEdit}
@@ -385,6 +524,7 @@ const ContractDetail = () => {
         />
         <TenantSection
           data={tenant}
+          banks={banks}
           editMode={editMode.tenant}
           editData={tenantEdit}
           setEditData={setTenantEdit}
@@ -438,65 +578,255 @@ const ContractDetail = () => {
             setContractEdit(contract);
           }}
         />
-        <div className="flex items-center justify-center gap-2 mt-[2rem]">
-          {isOwner && !editMode.landlord && !editMode.room && !editMode.contract && (
-            <button
-              className="px-4 py-2 bg-[#00b14f] text-white rounded font-semibold"
-              onClick={() => {
-                setEditMode({ landlord: true, room: true, contract: true, tenant: false });
-                setLandlordEdit(landlord);
-                if (room && room.id) {
-                  setRoomEdit(room);
-                } else {
-                  setRoomEdit({});
-                  toast.error('Không có dữ liệu phòng để chỉnh sửa!');
-                }
-                setContractEdit(contract);
-              }}
-            >
-              Chỉnh sửa
-            </button>
+
+        {/* note of contract when contarct has request revision */}
+        <div>
+          {contract?.revision_requested_tenant === true && (
+            <div key="tenant-revision" className="text-sm italic text-red-300 mt-[2rem]">
+              {isOwner ? contract?.tenant.infor.full_name : 'Bạn đã'} yêu cầu bạn chỉnh sửa hợp đồng {contract?.revision_reason ? ': ' + contract?.revision_reason : ''}
+            </div>
           )}
-          {isOwner && (editMode.landlord || editMode.room || editMode.contract) && (
+          {contract?.revision_requested_landlord === true && (
+            <div key="landlord-revision" className="text-sm italic text-red-300 mt-[2rem]">
+              {!isOwner ? contract?.landlord.infor.full_name : 'Bạn đã'} yêu cầu bạn chỉnh sửa hợp đồng {contract?.revision_reason ? ': ' + contract?.revision_reason : ''}
+            </div>
+          )}
+        </div>
+
+        {/* buttons for create, extend,cancel contract */}
+        <div className="flex items-center justify-center gap-2 mt-[2rem]">
+          {['canceled', 'end'].includes(contract?.status || '') ? null : (
             <>
               <button
-                className="px-4 py-2 bg-green-600 text-white rounded font-semibold"
-                onClick={async () => {
-                  await handleSaveLandlord();
-                  await handleSaveRoom();
-                  await handleSaveContract();
-                  setEditMode({ landlord: false, room: false, contract: false, tenant: false });
-                }}
+                className="px-4 py-2 bg-red-500 text-white rounded font-semibold"
+                onClick={() => { cancel() }}
               >
-                Lưu tất cả
-              </button>
-              <button
-                className="px-4 py-2 bg-gray-400 text-white rounded font-semibold"
-                onClick={() => {
-                  setEditMode({ landlord: false, room: false, contract: false, tenant: false });
-                  setLandlordEdit(landlord);
-                  setRoomEdit(room);
-                  setContractEdit(contract);
-                }}
-              >
-                Hủy
+                Hủy hợp đồng
               </button>
             </>
           )}
-          {!isOwner && (
-            editMode.tenant ? (
-              <>
-                <button className="ml-2 px-2 py-1 bg-green-500 text-white rounded" onClick={() => handleSaveTenant()}>Lưu</button>
-                <button className="ml-2 px-1 py-1 bg-gray-400 text-white rounded" onClick={() => {
-                  setEditMode(prev => ({ ...prev, tenant: false }));
-                  setTenantEdit(tenant);
-                }}>Hủy</button>
-              </>
-            ) : (
-              <button className="px-4 py-2 bg-[#00b14f] text-white rounded font-semibold" onClick={() => { setEditMode(prev => ({ ...prev, tenant: true })); setTenantEdit(tenant); }}>
-                chỉnh sửa
+          {contract?.status === 'creating' && (
+            <>
+              {contract?.landlord_completed === true && contract?.tenant_completed === true && (
+                <button className="px-4 py-2 bg-[#00b14f] text-white rounded font-semibold" onClick={() => { approveFinal() }}>
+                  Xác nhận hợp đồng hoàn chỉnh
+                </button>
+              )}
+              {isOwner && contract?.landlord_completed === false && !editMode.landlord && !editMode.room && !editMode.contract && (
+                <button
+                  className="px-4 py-2 bg-[#00b14f] text-white rounded font-semibold"
+                  onClick={() => {
+                    setEditMode({ landlord: true, room: true, contract: true, tenant: false });
+                    setLandlordEdit(landlord);
+                    if (room && room.id) {
+                      setRoomEdit(room);
+                    } else {
+                      setRoomEdit({});
+                      toast.error('Không có dữ liệu phòng để chỉnh sửa!');
+                    }
+                    setContractEdit(contract);
+                  }}
+                >
+                  Chỉnh sửa
+                </button>
+              )}
+              {isOwner && contract?.landlord_completed === false && (editMode.landlord || editMode.room || editMode.contract) && (
+                <>
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded font-semibold"
+                    onClick={async () => {
+                      await handleSaveLandlord();
+                      await handleSaveRoom();
+                      await handleSaveContract();
+                      setEditMode({ landlord: false, room: false, contract: false, tenant: false });
+                      handleMarkCompleted();
+                    }}
+                  >
+                    Lưu
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-gray-400 text-white rounded font-semibold"
+                    onClick={() => {
+                      setEditMode({ landlord: false, room: false, contract: false, tenant: false });
+                      setLandlordEdit(landlord);
+                      setRoomEdit(room);
+                      setContractEdit(contract);
+                    }}
+                  >
+                    Hủy
+                  </button>
+                </>
+              )}
+              {isOwner && contract?.tenant_completed === true && (
+                <button
+                  className="px-4 py-2 bg-yellow-500 text-white rounded font-semibold"
+                  onClick={() => setShowRevisionModal(true)}
+                >
+                  Yêu cầu sửa lại hợp đồng
+                </button>
+              )}
+              {!isOwner && contract?.tenant_completed === false && (
+                editMode.tenant ? (
+                  <>
+                    <button className="ml-2 px-2 py-1 bg-green-500 text-white rounded" onClick={async () => { handleSaveTenant(); handleMarkCompleted(); }}>Xác nhận</button>
+                    <button className="ml-2 px-1 py-1 bg-gray-400 text-white rounded" onClick={() => {
+                      setEditMode(prev => ({ ...prev, tenant: false }));
+                      setTenantEdit(tenant);
+                    }}>Hủy</button>
+                  </>
+                ) : (
+                  <>
+                    <button className="px-4 py-2 bg-[#00b14f] text-white rounded font-semibold" onClick={() => { setEditMode(prev => ({ ...prev, tenant: true })); setTenantEdit(tenant); }}>
+                      chỉnh sửa
+                    </button>
+                  </>
+                )
+              )}
+              {!isOwner && contract?.landlord_completed === true && (
+                <button
+                  className="px-4 py-2 bg-yellow-500 text-white rounded font-semibold"
+                  onClick={() => setShowRevisionModal(true)}
+                >
+                  Yêu cầu sửa lại hợp đồng
+                </button>
+              )}
+            </>
+          )
+          }
+          {isOwner && contract?.status === 'completed' && (
+            <div className="flex items-center gap-2">
+              <button
+                className="px-4 py-2 bg-yellow-400 text-white rounded font-semibold"
+                onClick={() => setShowExtendModal(true)}
+              >
+                Gia hạn hợp đồng
               </button>
-            )
+
+            </div>
+          )}
+          <RequestRevisionModal
+            contractId={contract?.id ?? 0}
+            isOpen={showRevisionModal}
+            onClose={() => setShowRevisionModal(false)}
+          />
+          <ExtendContractModal
+            isOpen={showExtendModal}
+            onClose={() => setShowExtendModal(false)}
+            onSubmit={handleExtend}
+            currentEndDate={contract?.end_date || ''}
+          />
+        </div>
+
+        {/* create bill and show bills of contract when status of contract is completed */}
+        <div className="mt-[2rem]">
+          {isOwner && contract?.status === 'completed' && (
+            <button
+              className="px-4 py-2 bg-green-500 text-white rounded font-semibold"
+              onClick={() => setShowCreateBill(true)}
+            >
+              Tạo hóa đơn
+            </button>
+          )}
+          {['canceled', 'creating'].includes(contract?.status || '') ? null : (
+            <>
+              {bills.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="font-bold text-lg mb-2">Danh sách hóa đơn</h2>
+                  <ul className="flex flex-col gap-[1rem]">
+                    {bills.map((bill) => (
+                      <li key={bill.id} className="py-2 px-4 flex flex-col md:flex-row md:items-center md:justify-between border-[1px] shadow-lg rounded">
+                        <div>
+                          <span className="font-semibold">Ngày tạo:</span> {bill.created_at?.split('T')[0]}<br />
+                          <span className="font-semibold">Tổng tiền:</span> {bill.total_amount?.toLocaleString()} VNĐ<br />
+                          <span className="font-semibold">Trạng thái:</span> {bill.confirm_receive ? 'Đã thanh toán' : (
+                            bill.confirm_paid ? 'Chưa xác nhận' : 'Chưa thanh toán'
+                          )}
+                        </div>
+                        <button
+                          className="mt-2 md:mt-0 px-3 py-1 bg-blue-500 text-white rounded"
+                          onClick={() => { setSelectedBill(bill); setShowBillModal(true); }}
+                        >
+                          Xem chi tiết
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+          {showCreateBill && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+              <div className="bg-white p-6 rounded shadow-lg min-w-[300px]">
+                <h3 className="font-bold mb-2">Tạo hóa đơn mới</h3>
+                <input
+                  type="number"
+                  placeholder="Số điện"
+                  className="border p-1 mb-2 w-full"
+                  value={billForm.electric_num}
+                  onChange={e => setBillForm(f => ({ ...f, electric_num: e.target.value }))}
+                />
+                <input
+                  type="number"
+                  placeholder="Tiền nước"
+                  className="border p-1 mb-2 w-full"
+                  value={billForm.water_fee}
+                  onChange={e => setBillForm(f => ({ ...f, water_fee: e.target.value }))}
+                />
+                <input
+                  type="number"
+                  placeholder="Phí khác"
+                  className="border p-1 mb-2 w-full"
+                  value={billForm.extra_fees}
+                  onChange={e => setBillForm(f => ({ ...f, extra_fees: e.target.value }))}
+                />
+                <input
+                  type="text"
+                  placeholder="Nội dung"
+                  className="border p-1 mb-2 w-full"
+                  value={billForm.content}
+                  onChange={e => setBillForm(f => ({ ...f, content: e.target.value }))}
+                />
+                {(() => {
+                  const roomPrice = contract?.data?.room_price || 0;
+                  const roomServicePrice = contract?.data?.room_service_price || 0;
+                  const electricPrice = contract?.data?.room_electric || 0;
+                  const electricNum = Number(billForm.electric_num) || 0;
+                  const waterFee = Number(billForm.water_fee) || 0;
+                  const extraFees = Number(billForm.extra_fees) || 0;
+                  const total = Number(roomPrice) + Number(electricPrice) * electricNum + waterFee + extraFees + Number(roomServicePrice);
+                  return (
+                    <div className="mb-2 font-semibold text-blue-700">
+                      Tổng tiền: {total.toLocaleString()} VNĐ
+                    </div>
+                  );
+                })()}
+                <div className="flex gap-2 mt-2">
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded"
+                    onClick={() => { handleCreateBill() }}
+                  >
+                    Tạo hóa đơn
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-gray-400 text-white rounded"
+                    onClick={() => setShowCreateBill(false)}
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {showBillModal && selectedBill && (
+            <BillDetails selectedBill={selectedBill} setShowBillModal={setShowBillModal} />
+          )}
+        </div>
+
+        {/* review and feedback of contract */}
+        <div>
+          {['canceled', 'creating'].includes(contract?.status || '') ? null : (
+            <ContractReviewSection contract={contract} isOwner={!!isOwner} />
           )}
         </div>
       </div>

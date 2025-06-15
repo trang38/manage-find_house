@@ -73,24 +73,65 @@ class IsLandlord(BasePermission):
 #         # Cho phép các hành động khác (list, retrieve...) nếu cần
 #         return True
 
+# class IsTenantInContract(BasePermission):
+#     def has_permission(self, request, view):
+#         return request.user.is_authenticated
+
+#     def has_object_permission(self, request, view, obj):
+#         # obj là instance của Rating hoặc RoomFeedback
+#         if hasattr(obj, 'tenant'):
+#             return request.user == obj.tenant
+#         return False
+
 class IsTenantInContract(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated
+        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            contract_id = request.data.get('contract') or request.query_params.get('contract')
+            if not contract_id:
+                return False
+            from constract.models import Contract
+            try:
+                contract = Contract.objects.get(id=contract_id)
+            except Contract.DoesNotExist:
+                return False
+            return request.user.is_authenticated and contract.tenant == request.user
+        return True
 
     def has_object_permission(self, request, view, obj):
-        # obj là instance của Rating hoặc RoomFeedback
-        if hasattr(obj, 'contract'):
-            return request.user == obj.contract.tenant
-        return False
+        if request.method in ['PUT', 'PATCH', 'DELETE']:
+            if hasattr(obj, 'tenant'):
+                return request.user == obj.tenant
+            return False
+        return True
 
+class IsLandlordInContract(BasePermission):
+    def has_permission(self, request, view):
+        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            contract_id = request.data.get('contract') or request.query_params.get('contract')
+            if not contract_id:
+                return False
+            from constract.models import Contract
+            try:
+                contract = Contract.objects.get(id=contract_id)
+            except Contract.DoesNotExist:
+                return False
+            return request.user.is_authenticated and contract.landlord == request.user
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in ['PUT', 'PATCH', 'DELETE']:
+            if hasattr(obj, 'landlord'):
+                return request.user == obj.landlord
+            return False
+        return True
 
 class IsLandlordOrTenantInContract(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        if hasattr(obj, 'contract'):
-            return request.user == obj.contract.landlord or request.user == obj.contract.tenant
+        if hasattr(obj, 'landlord') or hasattr(obj, 'tenant'):
+            return request.user == obj.landlord or request.user == obj.tenant
         return False
     
 class CannotDeleteCompletedContract(BasePermission):

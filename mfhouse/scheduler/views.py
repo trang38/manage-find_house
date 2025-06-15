@@ -5,11 +5,12 @@ from datetime import datetime, date
 from apscheduler.schedulers.background import BackgroundScheduler
 from constract.models import Contract
 from django.core.mail import send_mail
+from noti.models import Notification
 import os
 
 def start():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(check_contract_date, 'cron', hour='9', minute=0)
+    scheduler.add_job(check_contract_date, 'cron', hour='16', minute=0)
     scheduler.start()
 
 def check_contract_date():
@@ -24,11 +25,18 @@ def check_contract_date():
             months, days = contract.remaining_time
             tenant_email = contract.tenant.email
             landlord_email = contract.landlord.email
-            # tenant_email = contract.data.get('tenant_email')
-            # landlord_email = contract.data.get('landlord_email')
             room_name = contract.room.room_name
             house_name = contract.room.house.name
-
+            print(days)
+            if days == 0:
+                contract.status = 'end'
+            
+            Notification.objects.create(receiver=contract.tenant, 
+                            message=f"Còn {days} ngày nữa hợp đồng của phòng {contract.room.room_name}- nhà {contract.room.house.name} sẽ hết hạn.",
+                            type="contract")
+            Notification.objects.create(receiver=contract.landlord, 
+                            message=f"Còn {days} ngày nữa hợp đồng của phòng {contract.room.room_name}- nhà {contract.room.house.name} sẽ hết hạn.",
+                            type="contract")
             send_mail(
                 subject=f"Hợp đồng của phòng {room_name} tại nhà {house_name} sắp hết hạn",
                 message=f"Hợp đồng của bạn tại phòng {room_name} tại nhà {house_name} sẽ hết hạn sau {days} ngày.",

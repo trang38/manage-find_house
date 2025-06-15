@@ -1,8 +1,9 @@
 import React from 'react';
-import { City, District, Ward, User } from '../../components/interface_type';
+import { City, District, Ward, User, Bank, getBankName } from '../../components/interface_type';
 
 interface LandlordSectionProps {
   data: User | undefined;
+  banks: Bank[];
   editMode: boolean;
   editData: any;
   setEditData: (data: any) => void;
@@ -15,6 +16,7 @@ interface LandlordSectionProps {
 
 const LandlordSection: React.FC<LandlordSectionProps> = ({
   data,
+  banks,
   editMode,
   editData,
   setEditData,
@@ -97,7 +99,17 @@ const LandlordSection: React.FC<LandlordSectionProps> = ({
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Tên ngân hàng:</span>
-              <input className="border px-2" value={editData?.infor?.bank_name || ''} onChange={e => setEditData((prev: any) => ({ ...prev, infor: { ...prev.infor, bank_name: e.target.value } }))} />
+              {/* <input className="border px-2" value={editData?.infor?.bank_name || ''} onChange={e => setEditData((prev: any) => ({ ...prev, infor: { ...prev.infor, bank_name: e.target.value } }))} /> */}
+              <select
+                className="border px-2"
+                value={editData?.infor?.bank_name || ''}
+                onChange={e => setEditData((prev: any) => ({ ...prev, infor: { ...prev.infor, bank_name: e.target.value } }))}
+              >
+                <option value="">Chọn ngân hàng</option>
+                {banks.map(bank => (
+                  <option key={bank.bin} value={bank.bin}>{bank.name} - {bank.short_name}</option>
+                ))}
+              </select>
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Số tài khoản:</span>
@@ -155,7 +167,8 @@ const LandlordSection: React.FC<LandlordSectionProps> = ({
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Tên ngân hàng:</span>
-              <span>{data?.infor?.bank_name}</span>
+              {/* <span>{data?.infor?.bank_name}</span> */}
+              <span>{getBankName(data?.infor?.bank_name ?? '', banks)}</span>
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Số tài khoản:</span>

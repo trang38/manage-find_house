@@ -3,7 +3,7 @@ import { getCSRFToken } from "../../utils/cookies";
 import axios from "axios";
 import GoongMap from "../post/GoongMap";
 import HouseForm from "./HouseForm";
-import { City, District, House, Ward } from "../interface_type";
+import { House } from "../interface_type";
 import { Link } from "react-router-dom";
 
 const csrftoken = getCSRFToken();
@@ -141,7 +141,7 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
     };
 
     fetchCoordinates();
-  }, [houses, wardsMap, districtsMap, citiesMap]);
+  }, [houses]);
 
   if (loading) return <div>Loading houses...</div>;
 
@@ -191,7 +191,7 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
                   {typeof house.ward === 'object' && house.ward.path_with_type ? house.ward.path_with_type : ''}
                 </p>
                 {coordinatesMap[house.id] && (
-                  <div className="aspect-video w-[50%] max-md:w-[100%] mt-[0.8rem]">
+                  <div className="w-[100%] h-[25rem] mt-[0.8rem]">
                     <GoongMap
                       latitude={coordinatesMap[house.id].lat}
                       longitude={coordinatesMap[house.id].lng}

@@ -1,15 +1,20 @@
 from rest_framework import serializers
+
+from infor.serializers import UserSerializer
 from .models import Rating, RoomFeedback
 from constract.models import Contract
 
 class RatingSerializer(serializers.ModelSerializer):
+    feedback_obj = serializers.SerializerMethodField()
+    tenant = UserSerializer(read_only=True)
+
     class Meta:
         model = Rating
         fields = '__all__'
         read_only_fields = ['created_at']
 
     def validate(self, data):
-        contract = data.get('contract')
+        contract = data.get('contract') or getattr(self.instance, 'contract', None)
         request = self.context['request']
 
         if contract.tenant != request.user:
@@ -18,31 +23,39 @@ class RatingSerializer(serializers.ModelSerializer):
         if contract.status != 'completed':
             raise serializers.ValidationError("You can only rate a completed contract.")
 
-        if Rating.objects.filter(contract=contract).exists():
+        qs = Rating.objects.filter(contract=contract)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise serializers.ValidationError("You have already rated this contract.")
 
         return data
-
+    
+    def get_feedback_obj(self, obj):
+        feedback = RoomFeedback.objects.filter(response_to_rating=obj).first()
+        if feedback:
+            return RoomFeedbackSerializer(feedback, context=self.context).data
+        return None
 
 class RoomFeedbackSerializer(serializers.ModelSerializer):
+    landlord = UserSerializer(read_only=True)
+
     class Meta:
         model = RoomFeedback
         fields = '__all__'
         read_only_fields = ['created_at']
-
+    
     def validate(self, data):
-        contract = data.get('contract')
+        response_to_rating = data.get('response_to_rating') or getattr(self.instance, 'response_to_rating', None)
+        contract = data.get('contract') or getattr(self.instance, 'contract', None)
         request = self.context['request']
 
-        if contract.landlord != request.user and contract.tenant != request.user:
+        if contract.landlord != request.user:
             raise serializers.ValidationError("Only the landlord or the tenant of the contract can give room feedback.")
 
-        rating_ref = data.get('response_to_rating')
-        feedback_ref = data.get('response_to_feedback')
-
-        if rating_ref and feedback_ref:
-            raise serializers.ValidationError("Feedback cannot respond to both a rating and another feedback.")
-        if not rating_ref and not feedback_ref:
-            raise serializers.ValidationError("Feedback must respond to either a rating or another feedback.")
-
+        qs = RoomFeedback.objects.filter(response_to_rating=response_to_rating)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("You have already feedbacked this rating.")
         return data

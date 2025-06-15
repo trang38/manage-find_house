@@ -29,11 +29,25 @@ const BookingHistory: React.FC = () => {
           },
         }
       );
-      window.location.reload();
+      if (action === 'accept') {
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/contracts/?booking=${bookingId}`,
+          { withCredentials: true }
+        );
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          const contractId = res.data[0].id;
+          navigate(`/contracts/${contractId}`);
+          return;
+        }
+      }
+      fetchBookings();
+      fetchLandlordBookings();
     } catch (err) {
       console.error(`Lỗi khi ${action}:`, err);
     }
   };
+
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -53,41 +67,35 @@ const BookingHistory: React.FC = () => {
   const isLandlord = user?.infor?.role === 'landlord'
   console.log('islandlord:', isLandlord);
 
+  const fetchLandlordBookings = async () => {
+    if (!isLandlord || !authData?.user?.id) return;
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/bookings/?owner_id=${authData?.user?.id}`, {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': csrftoken || '',
+        }
+      });
+      setRoomBookings(res.data);
+    } catch (err) {
+    }
+  };
+  const fetchBookings = async () => {
+    if (!authData?.user?.id) return;
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/bookings/?tenant_id=${authData?.user?.id}`, {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': csrftoken || '',
+        }
+      });
+      setMyBookings(res.data);
+    } catch (err) { }
+  };
   useEffect(() => {
-    const fetchLandlordBookings = async () => {
-      if (!isLandlord || !authData?.user?.id) return;
-      try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/bookings/?owner_id=${authData?.user?.id}`, {
-          withCredentials: true,
-          headers: {
-            'X-CSRFToken': csrftoken || '',
-          }
-        });
-        setRoomBookings(res.data);
-      } catch (err) {
-      }
-    };
+    fetchBookings();
     fetchLandlordBookings();
   }, [user, authData?.user?.id]);
-
-  useEffect(() => {
-    const fetchBookings = async () => {
-      if (!authData?.user?.id) return;
-      try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/bookings/?tenant_id=${authData?.user?.id}`, {
-          withCredentials: true,
-          headers: {
-            'X-CSRFToken': csrftoken || '',
-          }
-        });
-        setMyBookings(res.data);
-      } catch (err) { }
-    };
-    fetchBookings();
-  }, [user, authData?.user?.id]);
-
-  console.log('mybookings', myBookings);
-  console.log('booking', roomBookings);
 
   const handleContactOwner = (owner: User) => {
     if (!isAuthenticated) {

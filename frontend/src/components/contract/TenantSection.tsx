@@ -1,8 +1,9 @@
 import React from 'react';
-import { City, District, Ward, User } from '../../components/interface_type';
+import { City, District, Ward, User, Bank, getBankName } from '../../components/interface_type';
 
 interface TenantSectionProps {
   data: User | undefined;
+  banks: Bank[],
   editMode: boolean;
   editData: any;
   setEditData: (data: any) => void;
@@ -15,6 +16,7 @@ interface TenantSectionProps {
 
 const TenantSection: React.FC<TenantSectionProps> = ({
   data,
+  banks,
   editMode,
   editData,
   setEditData,
@@ -28,18 +30,6 @@ const TenantSection: React.FC<TenantSectionProps> = ({
     <div className="tenant mt-[2rem]">
       <h2 className="font-bold uppercase flex items-center gap-[0.8rem]">
         Bên B (Người thuê):
-        {/* {!isOwner && (
-          editMode ? (
-            <>
-              <button className="ml-2 px-2 py-1 bg-green-500 text-white rounded" onClick={handleSave}>Lưu</button>
-              <button className="ml-2 px-1 py-1 bg-gray-400 text-white rounded" onClick={handleCancel}>Hủy</button>
-            </>
-          ) : (
-            <button className="px-4 py-2 bg-[#00b14f] text-white rounded font-semibold" onClick={onEdit}>
-              chỉnh sửa
-            </button>
-          )
-        )} */}
       </h2>
       <div className="flex flex-col gap-[0.4rem] mt-[.5rem]">
         {editMode ? (
@@ -97,7 +87,17 @@ const TenantSection: React.FC<TenantSectionProps> = ({
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Tên ngân hàng:</span>
-              <input className="border px-2" value={editData?.infor?.bank_name || ''} onChange={e => setEditData((prev: any) => ({ ...prev, infor: { ...prev.infor, bank_name: e.target.value } }))} />
+              {/* <input className="border px-2" value={editData?.infor?.bank_name || ''} onChange={e => setEditData((prev: any) => ({ ...prev, infor: { ...prev.infor, bank_name: e.target.value } }))} /> */}
+              <select
+                className="border px-2"
+                value={editData?.infor?.bank_name || ''}
+                onChange={e => setEditData((prev: any) => ({ ...prev, infor: { ...prev.infor, bank_name: e.target.value } }))}
+              >
+                <option value="">Chọn ngân hàng</option>
+                {banks.map(bank => (
+                  <option key={bank.bin} value={bank.bin}>{bank.name} - {bank.short_name}</option>
+                ))}
+              </select>
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Số tài khoản:</span>
@@ -150,7 +150,7 @@ const TenantSection: React.FC<TenantSectionProps> = ({
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Tên ngân hàng:</span>
-              <span>{data?.infor?.bank_name}</span>
+              <span>{getBankName(data?.infor?.bank_name ?? '', banks)}</span>
             </div>
             <div className="flex flex-row gap-[0.4rem]">
               <span className="font-semibold">Số tài khoản:</span>

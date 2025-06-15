@@ -86,13 +86,13 @@ export interface Room {
   updated_at?:string;
   post_id?: number;
   media?: MediaItem[];
+  ratings?: Rating[];
 }
 export interface MediaItem {
   id: number;
   file: string;
   type: 'image' | 'video';
 }
-
 
 export interface Post {
   id: number;
@@ -168,7 +168,6 @@ export const searchUser = async (username: string): Promise<Infor[]> => {
   }
 };
 
-
 export interface Booking {
   id: number;
   post: Post;
@@ -199,6 +198,7 @@ export interface Contract {
   landlord_completed: boolean,
   tenant_completed: boolean,
   landlord_confirm: boolean,
+  tenant_confirm: boolean,
   revision_requested_landlord: boolean,
   revision_requested_tenant: boolean,
   revision_reason: string | null,
@@ -212,10 +212,57 @@ export interface Contract {
   completed_at: string | null,
   ended_at: string | null,
   status: string,
-  data: JSON | null,
+  data: ContractData | null,
   booking: number,
 };
 
+export interface ContractData {
+  landlord_fullname: string,
+  landlord_email: string,
+  landlord_ward: string,
+  landlord_address_detail: string,
+  landlord_phone_number: string,
+  landlord_national_id: string,
+  landlord_national_id_date: string,
+  landlord_national_id_address: string,
+  landlord_id_front_image: string,
+  landlord_id_back_image: string,
+  landlord_bank_name: string,
+  landlord_bank_account: string,
+  landlord_bank_account_name: string,
+
+  tenant_fullname: string,
+  tenant_email: string,
+  tenant_ward: string,
+  tenant_address_detail: string,
+  tenant_phone_number: string,
+  tenant_national_id: string,
+  tenant_national_id_date: string,
+  tenant_national_id_address: string,
+  tenant_id_front_image: string,
+  tenant_id_back_image: string,
+  tenant_bank_name: string,
+  tenant_bank_account: string,
+  tenant_bank_account_name: string,
+
+  room_ward: string,
+  room_address_detail: string,
+  room_type: string,
+  room_price: string,
+  room_deposit: string,
+  room_electric: string,
+  room_water: string,
+  room_service_price: string,
+  room_area: string,
+  room_amenities: string,
+  room_description: string,
+
+  start_date: string,
+  end_date: string,
+  payment_day: string,
+  terms_landlord: string,
+  terms_tenant: string,
+}
 export const CONTRACT_STATUS_TYPE_MAP: Record<string, string> = {
   'creating': 'Đang hoàn thiện',
   'canceled': 'Đã hủy',
@@ -228,4 +275,78 @@ export const CONTRACT_STATUS_TYPE_CSS_MAP: Record<string, string> = {
   'canceled': 'text-slate-600',
   'completed': 'text-rose-600',
   'end': 'text-emerald-600',
+}
+
+export interface Bill {
+  id?: number,
+  contract: Contract,
+  electric_num?: number | null,
+  water_fee?: number | null,
+  extra_fees?: number | null,
+  total_amount?: number | null,
+  content?: string | null,
+  confirm_paid?: boolean | null,
+  confirm_receive?: boolean | null,
+  created_at?: string | null,
+  updated_at?: string | null,
+}
+
+export interface Bank {
+  bin: string,
+  name: string,
+  short_name: string,
+}
+
+export const getBankName = (bin: string, banks: Bank[]) => {
+  if (!bin) return '';
+  const found = banks?.find(b => b.bin === bin);
+  return found ? found.name + ' - ' + found.short_name : bin;
+};
+
+export interface VietQRRequest {
+  accountNo: string;      
+  accountName?: string;    
+  acqId: number;            
+  amount?: number;         
+  addInfo?: string;        
+  format?: string;          
+  template?: string;       
+}
+
+export interface VietQRGenResponse {
+  code: string; 
+  desc: string; 
+  data: {
+    acpId: number;         
+    accountName: string;   
+    qrCode: string;        
+    qrDataURL: string;     
+}
+}
+
+export interface Notification {
+  id: number;
+  message: string;
+  type: string;
+  created_at: string;
+  is_read: boolean;
+  receiver: number;
+}
+
+export interface RoomFeedback {
+  id: number;
+  contract: number;
+  landlord: User;
+  feedback: string;
+  response_to_rating: number;
+  created_at: string;
+}
+export interface Rating {
+  id: number;
+  tenant: User;
+  contract: number;
+  rating: number;
+  feedback: string;
+  created_at: string;
+  feedback_obj?: RoomFeedback;
 }

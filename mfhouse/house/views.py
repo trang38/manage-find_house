@@ -59,18 +59,9 @@ class PostFilter(filters.FilterSet):
     class Meta:
         model = Post
         fields = ['city', 'district', 'ward', 'room_type', 'price', 'area']
-# class PostListView(ListAPIView):
-#     serializer_class = PostSerializer
-#     filter_backends = [DjangoFilterBackend, SearchFilter]
-#     filterset_class = PostFilter
-#     search_fields = ['title']
-#     pagination_class = PostPagination
-
-#     def get_queryset(self):
-#         return Post.objects.filter(is_active=True, room__is_posted=True).order_by('-created_at')
-
+        
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-created_at')
+    queryset = Post.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = PostSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsLandlord]
     pagination_class = PostPagination

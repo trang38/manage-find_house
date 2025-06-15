@@ -272,13 +272,13 @@ const PostDetail = () => {
               <a href={isOwner ? '/profile/me' : `/profile/users/${post?.room.house.owner.username}`} className="flex flex-row gap-[1rem] items-center text-blue-600 hover:underline">
                 <img
                   src={
-  typeof post.room.house.owner.infor.image === "string"
-    ? (post.room.house.owner.infor.image.startsWith("http")
-        ? post.room.house.owner.infor.image
-        : (process.env.REACT_APP_API_URL ?? "") + post.room.house.owner.infor.image)
-    : post.room.house.owner.infor.image instanceof File
-      ? URL.createObjectURL(post.room.house.owner.infor.image)
-      : "default.jpg"
+                    typeof post.room.house.owner.infor.image === "string"
+                      ? (post.room.house.owner.infor.image.startsWith("http")
+                        ? post.room.house.owner.infor.image
+                        : (process.env.REACT_APP_API_URL ?? "") + post.room.house.owner.infor.image)
+                      : post.room.house.owner.infor.image instanceof File
+                        ? URL.createObjectURL(post.room.house.owner.infor.image)
+                        : "default.jpg"
                   }
                   alt={post?.room.house.owner.username}
                   className="h-10 w-10 rounded-full object-cover"
@@ -348,6 +348,34 @@ const PostDetail = () => {
             >
               Đặt phòng
             </button>
+          </div>
+        )}
+
+        {/* Room Rating */}
+        {post?.room.ratings && post.room.ratings.length > 0 && (
+          <div className="mt-8">
+            <h3 className="font-bold text-yellow-700 mb-2 text-lg">Đánh giá phòng</h3>
+            <ul className="divide-y">
+              {post.room.ratings.map((r: any) => (
+                <li key={r.id} className="py-3 px-2 bg-yellow-50 rounded mb-2 shadow flex flex-col">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-yellow-700">{r.tenant?.infor?.full_name || r.tenant?.username}</span>
+                    <span className="text-yellow-500">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                    <span className="ml-auto text-xs text-gray-400 italic">{r.created_at ? new Date(r.created_at).toLocaleString('vi-VN') : ''}</span>
+                  </div>
+                  <div className="text-gray-700 italic">{r.feedback}</div>
+                  {r.feedback_obj?.feedback && (
+                    <div className="text-blue-700 mt-1 pl-4 border-l-4 border-blue-200 flex flex-col">
+                      <a href={isOwner ? '/profile/me' : `/profile/users/${r.landlord.username}`} className="flex flex-row gap-[1rem] items-center text-blue-600 hover:underline">
+                        <img src={typeof r.landlord?.infor?.image === 'string' ? r.landlord.infor.image : undefined} alt="" className='w-[2rem] h-[2rem] rounded-full' />
+                        <span className="font-semibold">{r.landlord?.infor?.full_name || r.landlord?.username}</span>
+                      </a>
+                      <div className="italic">{r.feedback_obj.feedback}</div>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

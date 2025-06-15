@@ -159,7 +159,7 @@ const RoomsByHousePage = () => {
         {typeof house?.ward === 'object' ? house?.address_detail + ', ' + house?.ward.path_with_type : '' }
       </p>
       {coordinates && coordinates.lat !== undefined && coordinates.lng !== undefined && (
-        <div className="aspect-video w-[50%] max-md:w-[100%] mt-[0.8rem]">
+        <div className="w-[100%] h-[25rem] mt-[0.8rem]">
           <GoongMap
             latitude={coordinates.lat}
             longitude={coordinates.lng}

@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Payment, Refund
+
+from constract.serializers import ContractSerializer
+from .models import Payment
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,9 +25,8 @@ class PaymentSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-class RefundSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Refund
-        fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at']
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['contract'] = ContractSerializer(instance.contract).data
+        return rep
+    
