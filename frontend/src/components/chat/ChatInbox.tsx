@@ -9,12 +9,12 @@ interface ChatInboxProps {
   }) => void;
 }
 
-const ChatInbox: React.FC<ChatInboxProps> = ({ userId, onSelect }) => {
+const ChatInbox: React.FC<ChatInboxProps & { refresh?: number }> = ({ userId, onSelect, refresh }) => {
   const [inbox, setInbox] = useState<Message[]>([]);
 
   useEffect(() => {
     fetchInbox(userId).then(setInbox);
-  }, [userId]);
+  }, [userId, refresh]);
   // useEffect(() => {
   //   const interval = setInterval(() => {
   //     fetchInbox(userId).then(setInbox);

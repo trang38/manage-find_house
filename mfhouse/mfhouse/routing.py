@@ -1,11 +1,8 @@
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-from websocket_notifications.routing import websocket_urlpatterns
-import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mfhouse.settings')
-from django.core.asgi import get_asgi_application
-application = ProtocolTypeRouter(
-    {"http": get_asgi_application(),
-     "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
-     }
-)
+from django.urls import re_path
+from noti.consumers import NotificationConsumer
+from chat.consumers import ChatConsumer
+
+websocket_urlpatterns = [
+    re_path(r'ws/notifications/$', NotificationConsumer.as_asgi()),
+    re_path(r'ws/chat/(?P<room_name>[^/]+)/$', ChatConsumer.as_asgi()),
+]

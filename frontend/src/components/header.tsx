@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuthSessionQuery } from "../django-allauth/sessions/hooks";
 import NotificationModal from './NotificationModal';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { User, Notification } from "./interface_type";
 import { getCSRFToken } from "../utils/cookies";
@@ -18,7 +18,10 @@ export default function Header() {
   const [notiOpen, setNotiOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-
+  const wsRef = useRef<WebSocket | null>(null);
+  // const ws = new WebSocket("ws://localhost:8000/ws/notifications/");
+  // ws.onopen = () => console.log("connected!");
+  // ws.onmessage = (e) => console.log('e;',e.data);
   console.log(authData);
 
   const fetchUser = async () => {
@@ -62,11 +65,55 @@ export default function Header() {
       setUnreadCount(0);
     }
   }
-  
+
   useEffect(() => {
     fetchUser();
     fetchNoti();
   }, [authData, location.pathname, location.key]);
+  useEffect(() => {
+    if (!authData?.isAuthenticated || !user) return;
+
+    // Đảm bảo chỉ tạo 1 kết nối websocket
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+
+    // Kết nối websocket, nhớ thay localhost:8000 thành domain backend nếu deploy
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${wsProtocol}://localhost:8000/ws/notifications/`;
+    const ws = new WebSocket(wsUrl);
+    console.log('host', window.location.host);
+    console.log('protocol', wsProtocol);
+    ws.onopen = () => {
+      console.log("WebSocket notification connected");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        // Thêm notification mới vào đầu danh sách
+        setNotifications(prev => [data, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      } catch (e) {
+        console.error("WebSocket notification parse error", e);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket notification disconnected");
+    };
+
+    ws.onerror = (e) => {
+      console.error("WebSocket notification error", e);
+    };
+
+    wsRef.current = ws;
+
+    // Cleanup khi unmount
+    return () => {
+      ws.close();
+    };
+  }, [authData?.isAuthenticated, user]);
 
   const onRead = async (noti: Notification) => {
     if (!noti.is_read) {
@@ -84,6 +131,7 @@ export default function Header() {
   };
   const isAuthenticated = authData?.isAuthenticated;
   const isLandlord = user?.infor?.role === "landlord";
+
   return (
     <div className="fixed top-0 left-0 right-0 z-[1000] h-[4rem] bg-[#fff] text-[#333] flex  flex-row items-center justify-between px-[1.5rem] shadow-md">
       <div className="flex flex-row items-center">

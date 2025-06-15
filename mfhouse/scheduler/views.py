@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from constract.models import Contract
 from django.core.mail import send_mail
 from noti.models import Notification
+from noti.utils import send_notification_ws
 import os
 
 def start():
@@ -31,12 +32,15 @@ def check_contract_date():
             if days == 0:
                 contract.status = 'end'
             
-            Notification.objects.create(receiver=contract.tenant, 
+            notification = Notification.objects.create(receiver=contract.tenant, 
                             message=f"Còn {days} ngày nữa hợp đồng của phòng {contract.room.room_name}- nhà {contract.room.house.name} sẽ hết hạn.",
                             type="contract")
-            Notification.objects.create(receiver=contract.landlord, 
+            send_notification_ws(notification)
+            
+            notification = Notification.objects.create(receiver=contract.landlord, 
                             message=f"Còn {days} ngày nữa hợp đồng của phòng {contract.room.room_name}- nhà {contract.room.house.name} sẽ hết hạn.",
                             type="contract")
+            send_notification_ws(notification)
             send_mail(
                 subject=f"Hợp đồng của phòng {room_name} tại nhà {house_name} sắp hết hạn",
                 message=f"Hợp đồng của bạn tại phòng {room_name} tại nhà {house_name} sẽ hết hạn sau {days} ngày.",

@@ -17,7 +17,8 @@ const ChatPage: React.FC = () => {
     const [partnerImage, setPartnerImage] = useState<string | File | null>(initialPartner?.image ?? null);
     const [partnerFullName, setPartnerFullName] = useState<string | null>(initialPartner?.full_name ?? null);
     const [partnerProfile, setPartnerProfile] = useState<User | null>(null);
-
+    const [inboxRefresh, setInboxRefresh] = useState(0);
+    const handleNewMessage = () => setInboxRefresh(prev => prev + 1);
     if (authLoading) return <div>Đang tải...</div>;
     if (!isAuthenticated || !userId) return <div>Bạn cần đăng nhập để sử dụng chat.</div>;
     const handleSelectUser = (partner: {
@@ -39,11 +40,11 @@ const ChatPage: React.FC = () => {
                 <SearchUser onSelect={handleSelectUser} excludeId={userId} />
                 <hr className="my-2" />
                 {/* <ChatInbox userId={userId} onSelect={id => { setPartnerId(id); setPartnerProfile(null); }} /> */}
-                <ChatInbox userId={userId} onSelect={handleSelectUser} />
+                <ChatInbox userId={userId} onSelect={handleSelectUser} refresh={inboxRefresh} />
             </div>
             <div className="flex-1 shadow-lg ">
                 {partnerId ? (
-                    <ChatBox userId={userId} partnerId={partnerId} partnerImage={partnerImage ?? undefined} partnerFullName={partnerFullName ?? undefined} />
+                    <ChatBox userId={userId} partnerId={partnerId} partnerImage={partnerImage ?? undefined} partnerFullName={partnerFullName ?? undefined} onNewMessage={handleNewMessage} />
                 ) : (
                     <div className="flex items-center justify-center h-full">Chọn một hội thoại để bắt đầu chat</div>
                 )}

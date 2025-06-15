@@ -37,14 +37,35 @@ export const sendMessage = async (sender: number, receiver: number, message: str
   );
   return res.data;
 };
-const ChatBox: React.FC<ChatBoxProps> = ({ userId, partnerId, partnerImage, partnerFullName }) => {
+const ChatBox: React.FC<ChatBoxProps & { onNewMessage?: () => void }> = ({ userId, partnerId, partnerImage, partnerFullName, onNewMessage }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [partner, setPartner] = useState<Infor>();
+  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     fetchMessages(userId, partnerId).then(setMessages);
+    if (!userId || !partnerId) return;
+    // Đóng ws cũ nếu có
+    if (wsRef.current) wsRef.current.close();
+
+    // Tạo room_name theo quy ước, ví dụ: room_<userId>_<partnerId> (hoặc sắp xếp id tăng dần để 2 chiều giống nhau)
+    const ids = [userId, partnerId].sort((a, b) => a - b);
+    const roomName = `room_${ids[0]}_${ids[1]}`;
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl =`${wsProtocol}://localhost:8000/ws/chat/${roomName}/`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setMessages((prev) => [...prev, data]);
+      if (onNewMessage) onNewMessage();
+    };
+    wsRef.current = ws;
+
+    // Cleanup
+    return () => ws.close();
   }, [userId, partnerId]);
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -55,13 +76,23 @@ const ChatBox: React.FC<ChatBoxProps> = ({ userId, partnerId, partnerImage, part
   // }, [userId, partnerId]);
 
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    await sendMessage(userId, partnerId, input);
+  // const handleSend = async () => {
+  //   if (!input.trim()) return;
+  //   await sendMessage(userId, partnerId, input);
+  //   setInput("");
+  //   fetchMessages(userId, partnerId).then(setMessages);
+  // };
+  const handleSend = () => {
+    if (!input.trim() || !wsRef.current) return;
+    wsRef.current.send(
+      JSON.stringify({
+        message: input,
+        sender: userId,
+        receiver: partnerId,
+      })
+    );
     setInput("");
-    fetchMessages(userId, partnerId).then(setMessages);
   };
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -74,9 +105,10 @@ const ChatBox: React.FC<ChatBoxProps> = ({ userId, partnerId, partnerImage, part
           {partnerFullName}
         </h1>
       </div>
-      <div ref={chatContainerRef}  className="overflow-y-auto h-full flex flex-col gap-[0.5rem] px-[0.5rem] pb-[1rem]">
+      <div ref={chatContainerRef} className="overflow-y-auto h-full flex flex-col gap-[0.5rem] px-[0.5rem] pb-[1rem]">
         {messages.map((msg) => {
-          const isOwn = msg.sender.id === userId;
+          // const isOwn = msg.sender.id === userId;
+          const isOwn = (typeof msg.sender === "object" ? msg.sender.id : msg.sender) === userId;
           return (
             <div
               key={msg.id}

@@ -13,7 +13,7 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 import os
-
+from noti.utils import send_notification_ws
 
 class PaymentFilter(filters.FilterSet):
     contract = filters.NumberFilter(field_name="contract")
@@ -33,11 +33,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
         payment = serializer.save()
         contract = payment.contract
         from noti.models import Notification
-        Notification.objects.create(
+        notification = Notification.objects.create(
             receiver=contract.tenant,
             message=f"Chủ trọ {contract.landlord.username} đã tạo hóa đơn mới cho phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
             type="bill"
         )
+        send_notification_ws(notification)
+
         # send_mail(
         #         subject=f"Bạn có hóa đơn mới",
         #         message=f"Chủ trọ {contract.landlord.username} đã tạo hóa đơn mới cho phòng {contract.room.room_name} - nhà {contract.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết.",
@@ -73,10 +75,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
         bill.updated_at = timezone.now()
         bill.save()
 
-        Notification.objects.create(receiver=bill.contract.landlord, 
+        notification = Notification.objects.create(receiver=bill.contract.landlord, 
                             message=f"Khách {bill.contract.tenant.username} đã xác nhận đã thanh toán hóa đơn của phòng {bill.contract.room.room_name} - nhà {bill.contract.room.house.name}.",
                             type="bill")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Một hóa đơn đã được thanh toán",
         #         message=f"Khách {contract.tenant.username} đã xác nhận đã thanh toán hóa đơn của phòng {contract.room.room_name} - nhà {contract.room.house.name}.. Vui lòng kiểm tra website để biết thêm chi tiết.",
@@ -97,8 +99,9 @@ class PaymentViewSet(viewsets.ModelViewSet):
         bill.updated_at = timezone.now()
         bill.save()
 
-        Notification.objects.create(receiver=bill.contract.tenant, 
+        notification = Notification.objects.create(receiver=bill.contract.tenant, 
                             message=f"Chủ trọ {bill.contract.landlord.username} đã nhận được tiền.",
                             type="bill")
+        send_notification_ws(notification)
         
         return Response({'message': 'Bill has been receive'})

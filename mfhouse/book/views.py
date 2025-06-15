@@ -19,6 +19,8 @@ from django.core.mail import send_mail
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
+from noti.utils import send_notification_ws
+
 # import snitch
 class BookingFilter(filters.FilterSet):
     owner_id = filters.NumberFilter(field_name="post__room__house__owner__id")
@@ -39,10 +41,10 @@ class BookingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         booking = serializer.save(tenant=self.request.user)
         post = booking.post
-        Notification.objects.create(receiver=post.room.house.owner, 
+        notification = Notification.objects.create(receiver=post.room.house.owner, 
                                     message=f"{self.request.user.username} đã đặt phòng {post.room.room_name} tại {post.room.house.name}",
                                     type="booking")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Phòng {post.room.room_name} tại nhà {post.room.house.name} có một yêu cầu đặt phòng mới",
         #         message=f"Phòng {post.room.room_name} tại nhà {post.room.house.name} đã nhận được một yêu cầu đặt phòng mới từ {self.request.user.username}. Vui lòng kiểm tra website để biết thêm chi tiết.",
@@ -92,10 +94,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.status = 'cancelled'
         booking.updated_at = timezone.now()
         booking.save()
-        Notification.objects.create(receiver=post.room.house.owner, 
+        notification = Notification.objects.create(receiver=post.room.house.owner, 
                                     message=f"Người dùng {self.request.user.username} đã hủy bỏ yêu cầu đặt phòng {post.room.room_name} tại {post.room.house.name}",
                                     type="booking")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Một yêu cầu đặt phòng đã bị hủy bỏ",
         #         message=f"Người dùng {self.request.user.username} đã hủy bỏ yêu cầu đặt phòng {post.room.room_name} tại {post.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết.",
@@ -128,10 +130,10 @@ class BookingViewSet(viewsets.ModelViewSet):
             status='creating',
         )
 
-        Notification.objects.create(receiver=booking.tenant, 
+        notification = Notification.objects.create(receiver=booking.tenant, 
                                     message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} chấp nhận. Vui lòng đợi chủ nhà tạo hợp đồng.",
                                     type="booking")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Yêu cầu đặt phòng của bạn đã được chấp nhận",
         #         message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} của bạn lúc {booking.booking_at} đã được chấp nhận. Vui lòng kiểm tra website để biết thêm chi tiết và hoàn thiện hợp đồng.",
@@ -163,10 +165,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.updated_at = timezone.now()
         booking.save()
 
-        Notification.objects.create(receiver=booking.tenant, 
+        notification = Notification.objects.create(receiver=booking.tenant, 
                                     message=f"Phòng bạn đặt tại bài đăng {booking.post.title} đã bị từ chối.",
                                     type="booking")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Yêu cầu đặt phòng đã bị từ chối",
         #         message=f"Yêu cầu đặt phòng tại bài đăng {booking.post.title} của bạn lúc {booking.booking_at} đã bị từ chối. Bạn có thể truy cập website và tìm kiếm nhà trọ phù hợp hơn.",

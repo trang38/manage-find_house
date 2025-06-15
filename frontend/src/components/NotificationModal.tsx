@@ -8,9 +8,7 @@ import { Notification } from './interface_type';
 interface NotificationModalProps {
   open: boolean;
   onClose: () => void;
-  // setUnreadCount?: (n: number) => void;
   notifications: Notification[];
-  // setNotifications: (n: Notification[]) => void;
   onRead: (noti: Notification) => void;
 }
 

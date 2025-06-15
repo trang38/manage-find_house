@@ -9,6 +9,7 @@ from .serializers import RatingSerializer, RoomFeedbackSerializer
 from mfhouse.permissions import IsTenantInContract, IsLandlordInContract
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
+from noti.utils import send_notification_ws
 
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()
@@ -24,19 +25,21 @@ class RatingViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         instance = serializer.save()
-        Notification.objects.create(
+        notification = Notification.objects.create(
             receiver=instance.contract.landlord,
             message=f"{instance.contract.tenant.username} đã đánh giá về phòng {instance.contract.room.room_name} - nhà {instance.contract.room.house.name}.",
             type="contract"
         )
+        send_notification_ws(notification)
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        Notification.objects.create(
+        notification = Notification.objects.create(
             receiver=instance.contract.landlord,
             message=f"{instance.contract.tenant.username} đã cập nhật đánh giá về phòng {instance.contract.room.room_name} - nhà {instance.contract.room.house.name}.",
             type="contract"
         )
+        send_notification_ws(notification)
 
 class RoomFeedbackViewSet(viewsets.ModelViewSet):
     queryset = RoomFeedback.objects.all()
@@ -52,16 +55,18 @@ class RoomFeedbackViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         instance = serializer.save()
-        Notification.objects.create(
+        notification = Notification.objects.create(
             receiver=instance.contract.tenant,
             message=f"Chủ nhà đã phản hồi đánh giá của bạn về phòng {instance.contract.room.room_name} - nhà {instance.contract.room.house.name}.",
             type="contract"
         )
+        send_notification_ws(notification)
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        Notification.objects.create(
+        notification = Notification.objects.create(
             receiver=instance.contract.tenant,
             message=f"Chủ nhà đã cập nhật phản hồi đánh giá của bạn về phòng {instance.contract.room.room_name} - nhà {instance.contract.room.house.name}.",
             type="contract"
         )
+        send_notification_ws(notification)

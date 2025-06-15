@@ -15,6 +15,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 from noti.models import Notification
 from django.core.mail import send_mail
+from noti.utils import send_notification_ws
 import os
 
 class ContractFilter(filters.FilterSet):
@@ -53,10 +54,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         if user == contract.tenant:
             contract.revision_requested_tenant = True
             contract.landlord_completed = False
-            Notification.objects.create(receiver=contract.landlord, 
+            notification = Notification.objects.create(receiver=contract.landlord, 
                             message=f"Người dùng {contract.tenant.username} đã yêu cầu bạn chỉnh sửa lại hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
                             type="contract")
-        
+            send_notification_ws(notification)
             # send_mail(
             #         subject=f"Yêu cầu chỉnh sửa hợp đồng",
             #         message=f"Người dùng {contract.tenant.username} đã yêu cầu bạn chỉnh sửa lại hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết và hoàn thiện hợp đồng.",
@@ -67,10 +68,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         elif user == contract.landlord:
             contract.revision_requested_lanlord = True
             contract.tenant_completed = False
-            Notification.objects.create(receiver=contract.tenant, 
+            notification = Notification.objects.create(receiver=contract.tenant, 
                             message=f"Chủ trọ {contract.landlord.username} đã yêu cầu bạn chỉnh sửa lại hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
                             type="contract")
-        
+            send_notification_ws(notification)
             # send_mail(
             #         subject=f"Yêu cầu chỉnh sửa hợp đồng",
             #         message=f"Chủ trọ {contract.landlord.username} đã yêu cầu bạn chỉnh sửa lại hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết và hoàn thiện hợp đồng.",
@@ -100,10 +101,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         contract.revision_requested_tenant = False
         contract.updated_at = timezone.now()
         contract.save()
-        Notification.objects.create(receiver=contract.tenant, 
+        notification = Notification.objects.create(receiver=contract.tenant, 
                             message=f"Chủ trọ {contract.landlord.username} đã chỉnh sửa hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Hãy kiểm tra thông tin.",
                             type="contract")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Yêu cầu kiểm tra thông tin hợp đồng",
         #         message=f"Chủ trọ {contract.landlord.username} đã chỉnh sửa hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết và hoàn thiện hợp đồng.",
@@ -123,10 +124,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         contract.revision_requested_landlord = False
         contract.updated_at = timezone.now()
         contract.save()
-        Notification.objects.create(receiver=contract.landlord, 
+        notification = Notification.objects.create(receiver=contract.landlord, 
                             message=f"Người dùng {contract.tenant.username} đã chỉnh sửa hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Hãy kiểm tra lại thông tin.",
                             type="contract")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Yêu cầu kiểm tra thông tin hợp đồng",
         #         message=f"Người dùng {contract.tenant.username} đã chỉnh sửa hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết và hoàn thiện hợp đồng.",
@@ -149,10 +150,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         contract.landlord_confirm = True
         contract.updated_at = timezone.now()
         contract.save()
-        Notification.objects.create(receiver=contract.tenant, 
+        notification = Notification.objects.create(receiver=contract.tenant, 
                 message=f"Chủ trọ {contract.landlord.username} đã xác nhận thông tin hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
                 type="contract")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Yêu cầu kiểm tra thông tin hợp đồng",
         #         message=f"Chủ trọ {contract.landlord.username} đã xác nhận thông tin hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Nếu bạn chưa xác nhận hợp đồng thì hãy truy cập website và xác nhận để hoàn thành hợp đồng.",
@@ -175,10 +176,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         contract.tenant_confirm = True
         contract.updated_at = timezone.now()
         contract.save()
-        Notification.objects.create(receiver=contract.landlord, 
+        notification = Notification.objects.create(receiver=contract.landlord, 
                 message=f"Khách {contract.tenant.username} đã xác nhận thông tin hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
                 type="contract")
-        
+        send_notification_ws(notification)
         # send_mail(
         #         subject=f"Yêu cầu kiểm tra thông tin hợp đồng",
         #         message=f"Khách {contract.tenant.username} đã xác nhận thông tin hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. Nếu bạn chưa xác nhận hợp đồng thì hãy truy cập website và xác nhận để hoàn thành hợp đồng.",
@@ -215,10 +216,10 @@ class ContractViewSet(viewsets.ModelViewSet):
             contract.end_date = new_end_date
             contract.full_clean()  
             contract.save(update_fields=['end_date'])
-            Notification.objects.create(receiver=contract.tenant, 
+            notification = Notification.objects.create(receiver=contract.tenant, 
                 message=f"Chủ trọ {contract.landlord.username} đã gia hạn hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name} tới {new_end_date}.",
                 type="contract")
-        
+            send_notification_ws(notification)
             # send_mail(
             #         subject=f"Gia hạn hợp đồng",
             #         message=f"Chủ trọ {contract.landlord.username} đã gia hạn hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name} tới {new_end_date}. Truy cập website để biết thêm chi tiết.",
@@ -245,10 +246,10 @@ class ContractViewSet(viewsets.ModelViewSet):
             contract.end_at = now
         contract.save()
         if request.user == contract.landlord:
-            Notification.objects.create(receiver=contract.tenant, 
+            notification = Notification.objects.create(receiver=contract.tenant, 
                 message=f"Chủ trọ {contract.landlord.username} đã hủy bỏ hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
                 type="contract")
-        
+            send_notification_ws(notification)
             # send_mail(
             #         subject=f"Hợp đồng bị hủy bỏ",
             #         message=f"Chủ trọ {contract.landlord.username} đã hủy bỏ hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
@@ -257,10 +258,10 @@ class ContractViewSet(viewsets.ModelViewSet):
             #         fail_silently=False,
             #     )
         if request.user == contract.tenant:
-            Notification.objects.create(receiver=contract.landlord, 
+            notification = Notification.objects.create(receiver=contract.landlord, 
                 message=f"Khách {contract.tenant.username} đã hủy bỏ hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}.",
                 type="contract")
-        
+            send_notification_ws(notification)
             # send_mail(
             #         subject=f"Yêu cầu chỉnh sửa hợp đồng",
             #         message=f"Khách {contract.tenant.username} đã hủy bỏ hợp đồng của phòng {contract.room.room_name} - nhà {contract.room.house.name}. ",

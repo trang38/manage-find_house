@@ -233,7 +233,7 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className='text-[#006400]'>Tên phòng:</p>
-            <input name="room_name" value={form.room_name} onChange={handleChange} placeholder="Tên phòng" className="border p-2 w-full" />
+            <input name="room_name" value={form.room_name} onChange={handleChange} placeholder="Tên phòng" className="border p-2 w-full" readOnly />
           </div>
           <div>
             <p className='text-[#006400]'>Loại phòng:</p>
@@ -396,13 +396,6 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
                             disabled={b.status !== 'pending'}
                           >
                             Từ chối
-                          </button>
-                          <button
-                            onClick={async () => await handleBookingAction(b.id, 'cancel')}
-                            className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-700 disabled:opacity-50"
-                            disabled={b.status !== 'pending'}
-                          >
-                            Hủy yêu cầu
                           </button>
                         </div>
                       )}
