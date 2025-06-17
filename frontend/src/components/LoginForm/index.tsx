@@ -1,5 +1,6 @@
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -17,15 +18,26 @@ import { Link as RouterLink } from "react-router-dom";
 import { loginMutation } from "../../django-allauth/accounts/login";
 import LoginWithSocialButton from "../LoginWithSocialButtton";
 
+
 export default function LoginForm() {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const { mutate } = useMutation({
     mutationFn: loginMutation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authSession"] });
+      setError("");
     },
+    onError: (err: any) => {
+    const errorData = JSON.parse(err.message);
+    if (errorData && errorData.non_field_errors) {
+      setError(errorData.non_field_errors.join(", "));
+    } else {
+      setError("Đăng nhập thất bại. Vui lòng thử lại.");
+    }
+  },
   });
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,6 +45,7 @@ export default function LoginForm() {
   }
   return (
     <Container component="section" maxWidth="xs" className="mt-[7rem]">
+      {error && <Alert severity="error">{error}</Alert>}
       <Box
         sx={{
           marginTop: 8,
@@ -82,9 +95,12 @@ export default function LoginForm() {
           </Button>
           <Grid container spacing={2}>
             <Grid size={{ xs: 6, md: 7 }} component="div">
-              <Link href="#" variant="body2">
+              {/* <Link href="#" variant="body2">
                 Quên mật khẩu?
-              </Link>
+              </Link> */}
+              <Link component={RouterLink} to="/auth/reset-password" variant="body2">
+  Quên mật khẩu?
+</Link>
             </Grid>
             <Grid size={{ xs: 6, md: 7 }} component="div">
               <Link component={RouterLink} to="/auth/signup" variant="body2">

@@ -243,6 +243,10 @@ ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+# ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+
 
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
@@ -266,7 +270,7 @@ HEADLESS_ONLY = True
 # MFA_PASSKEY_SIGNUP_ENABLED = True
 HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": "http://localhost:3000",
-    "account_reset_password_from_key": "http://localhost:3000",
+    "account_reset_password_from_key": "http://localhost:3000/reset-password-confirm/{key}/",
     "account_signup": "http://localhost:3000",
     "socialaccount_login_error": "http://localhost:3000",
 }
@@ -297,3 +301,8 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE': 10,
 }
+
+ACCOUNT_HEADLESS_FRONTEND_URLS = {
+    "account_reset_password_from_key": "http://localhost:3000/reset-password-confirm/{key}/",
+}
+# ACCOUNT_LOGIN_ON_PASSWORD_RESET = True

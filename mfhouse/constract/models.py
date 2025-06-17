@@ -31,7 +31,7 @@ class Contract(models.Model):
     tenant_completed = models.BooleanField(default=False)  # Tenant đã điền thông tin
     landlord_confirm = models.BooleanField(default=False) # landlord xác nhận thôg tin của tenant ok hết
     tenant_confirm = models.BooleanField(default=False)
-    revision_requested_lanlord = models.BooleanField(default=False) # landlord yêu cầu tenant sửa hợp đồng
+    revision_requested_landlord = models.BooleanField(default=False) # landlord yêu cầu tenant sửa hợp đồng
     revision_requested_tenant = models.BooleanField(default=False) # tenant yêu cầu landlord sửa hợp đồng
     revision_reason = models.TextField(null=True, blank=True)
 

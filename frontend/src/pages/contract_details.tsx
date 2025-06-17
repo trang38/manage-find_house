@@ -491,6 +491,34 @@ const ContractDetail = () => {
     }
   };
 
+const createPDF = async () => {
+  if (!contract?.id || contract?.status !== 'completed') return;
+
+  try {
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}/api/contracts/${contract.id}/export_pdf/`,
+      {
+        responseType: 'blob', // 👈 Quan trọng: để nhận file
+        withCredentials: true,
+        headers: { 'X-CSRFToken': csrftoken || '' },
+      }
+    );
+
+    const blob = new Blob([res.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `contract_${contract.id}.pdf`); // 👈 Tên file
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url); // ✅ Dọn dẹp
+  } catch (err) {
+    console.error(err);
+    toast.error('Tải xuống thất bại!');
+  }
+};
   return (
     <div className="mx-auto min-h-[calc(100vh-15.88rem)] pt-[7rem] mb-[3rem] w-fit flex flex-row max-xl:flex-col">
       <div className="w-[1000px] max-lg:max-w-[100%] max-lg:px-[1.5rem]">
@@ -703,6 +731,9 @@ const ContractDetail = () => {
               </button>
 
             </div>
+          )}
+          {contract?.status === 'completed' && (
+            <button className="px-4 py-2 bg-green-400 text-white rounded font-semibold" onClick={() => {createPDF()}}>Tải xuống</button>
           )}
           <RequestRevisionModal
             contractId={contract?.id ?? 0}
