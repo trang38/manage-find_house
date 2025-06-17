@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from mfhouse.permissions import CannotDeleteCompletedContract, IsLandlord, IsLandlordOrTenantInContract
+from mfhouse.permissions import CannotDeleteCompletedContract
 from .models import Contract
 from .serializers import ContractSerializer
 from rest_framework.exceptions import ValidationError
@@ -31,7 +31,7 @@ class ContractFilter(filters.FilterSet):
 class ContractViewSet(viewsets.ModelViewSet):
     queryset = Contract.objects.all().order_by('-updated_at')
     serializer_class = ContractSerializer
-    permission_classes = [permissions.IsAuthenticated, IsLandlordOrTenantInContract, CannotDeleteCompletedContract]
+    permission_classes = [permissions.IsAuthenticated, CannotDeleteCompletedContract]
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContractFilter
     

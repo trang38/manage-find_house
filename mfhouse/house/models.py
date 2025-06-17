@@ -56,7 +56,7 @@ class RoomMedia(models.Model):
     file = models.FileField(upload_to=PathAndRename("room_files"))
 
 class Post(models.Model):
-    room = models.OneToOneField(Room, on_delete=models.CASCADE, related_name='post')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='post')
     title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

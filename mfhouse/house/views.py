@@ -4,7 +4,7 @@ from rest_framework.generics import ListAPIView
 from .pagination import PostPagination
 from .models import House, Room, RoomMedia, Post
 from .serializers import HouseSerializer, RoomSerializer, RoomMediaSerializer, PostSerializer
-from mfhouse.permissions import IsLandlord, IsRoomOwner
+from mfhouse.permissions import IsLandlord, IsRoomOwner, CannotDeleteHouseIfhasRooms
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
@@ -14,7 +14,7 @@ from django_filters import rest_framework as filters
 class HouseViewSet(viewsets.ModelViewSet):
     queryset = House.objects.all()
     serializer_class = HouseSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsLandlord]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsLandlord, CannotDeleteHouseIfhasRooms]
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

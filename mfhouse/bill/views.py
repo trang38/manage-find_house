@@ -40,13 +40,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
         )
         send_notification_ws(notification)
 
-        # send_mail(
-        #         subject=f"Bạn có hóa đơn mới",
-        #         message=f"Chủ trọ {contract.landlord.username} đã tạo hóa đơn mới cho phòng {contract.room.room_name} - nhà {contract.room.house.name}. Vui lòng kiểm tra website để biết thêm chi tiết.",
-        #         from_email=os.getenv('EMAIL_HOST_USER'),
-        #         recipient_list=[contract.tenant.email],
-        #         fail_silently=False,
-        #     )
         
     def get_queryset(self):
         user = self.request.user

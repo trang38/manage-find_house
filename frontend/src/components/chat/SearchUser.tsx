@@ -12,10 +12,15 @@ const SearchUser: React.FC<SearchUserProps> = ({ onSelect, excludeId }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
+      const trimmedQuery = query.trim();
+  if (!trimmedQuery) {
+    setResults([]); // xoá kết quả nếu không có query
+    return;
+  }
     setLoading(true);
     try {
-      const users = await searchUser(query);
-      setResults(users.filter(u => u.user?.id));
+      const users = await searchUser(trimmedQuery);
+      setResults(users.filter(u => u.user));
     } finally {
       setLoading(false);
     }

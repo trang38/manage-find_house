@@ -30,7 +30,7 @@ export default function AppRoutes() {
             <Route path="signup" element={<SignupForm />} />
           </Route>
           {/* <Route path="app" element={<PrivateRoute />}> */}
-            <Route index element={<CrudBody />} />
+            {/* <Route index element={<CrudBody />} /> */}
             <Route path="app" element={<HomePage />} />
             <Route path="profile/me" element={<CurrentUserProfile />} />
             <Route path="profile/users/:username" element={<PublicUserProfile />} />

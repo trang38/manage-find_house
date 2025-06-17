@@ -45,44 +45,7 @@ class IsLandlord(BasePermission):
                 request.user.infor.role == 'landlord'
             )
         # return True
-    
-# class IsHouseOwner(BasePermission):
-#     """
-#     Chỉ cho phép landlord là chủ sở hữu của house được tạo room trong house đó.
-#     """
-
-#     def has_permission(self, request, view):
-#         # Chỉ áp dụng khi tạo mới (POST)
-#         if request.method == 'POST':
-#             user = request.user
-#             if not user.is_authenticated or user.infor.role != 'landlord':
-#                 return False
-
-#             # Lấy house_id từ request data
-#             house_id = request.data.get('house')
-#             if not house_id:
-#                 return False
-
-#             try:
-#                 house = House.objects.get(id=house_id)
-#             except House.DoesNotExist:
-#                 return False
-
-#             return house.owner == user
-
-#         # Cho phép các hành động khác (list, retrieve...) nếu cần
-#         return True
-
-# class IsTenantInContract(BasePermission):
-#     def has_permission(self, request, view):
-#         return request.user.is_authenticated
-
-#     def has_object_permission(self, request, view, obj):
-#         # obj là instance của Rating hoặc RoomFeedback
-#         if hasattr(obj, 'tenant'):
-#             return request.user == obj.tenant
-#         return False
-
+ 
 class IsTenantInContract(BasePermission):
     def has_permission(self, request, view):
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
@@ -165,4 +128,9 @@ class CannotDeletePay(BasePermission):
         return True
     
 
+class CannotDeleteHouseIfhasRooms(BasePermission):
 
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'DELETE' and obj.rooms.count() > 0:
+            return PermissionDenied("Bạn ko thể xóa khi nhà vẫn còn thông tin các phòng.")
+        return True

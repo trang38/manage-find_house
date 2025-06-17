@@ -75,42 +75,6 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
         console.log("housesRes.data:", housesRes.data);
         setHouses(housesData);
 
-        // 2. Lấy danh sách id city, district, ward duy nhất
-        // const cityIds = Array.from(new Set(housesData.map(h => h.city).filter(Boolean))) as number[];
-        // const districtIds = Array.from(new Set(housesData.map(h => h.district).filter(Boolean))) as number[];
-        // const wardIds = Array.from(new Set(housesData.map(h => h.ward).filter(Boolean))) as number[];
-
-        // // 3. Fetch cities
-        // const citiesRes = await axios.get<City[]>(`${process.env.REACT_APP_API_URL}/api/address/cities`);
-        // const citiesData = citiesRes.data.filter(c => cityIds.includes(c.id!));
-        // const citiesMapTemp: Record<number, string> = {};
-        // citiesData.forEach(c => { if (c.id) citiesMapTemp[c.id] = c.name; });
-        // setCitiesMap(citiesMapTemp);
-
-        // // 4. Fetch districts theo từng city_id, gom lại thành 1 mảng
-        // let districtsData: District[] = [];
-        // for (const cityId of cityIds) {
-        //   const res = await axios.get<{ districts: District[] }>(`${process.env.REACT_APP_API_URL}/api/address/city/${cityId}`);
-        //   districtsData = districtsData.concat(res.data.districts);
-        // }
-        // // Lọc districts theo districtIds, tạo map id=>name
-        // districtsData = districtsData.filter(d => districtIds.includes(d.id));
-        // const districtsMapTemp: Record<number, string> = {};
-        // districtsData.forEach(d => { districtsMapTemp[d.id] = d.name; });
-        // setDistrictsMap(districtsMapTemp);
-
-        // // 5. Fetch wards theo từng district_id
-        // let wardsData: Ward[] = [];
-        // for (const districtId of districtIds) {
-        //   const res = await axios.get<{ wards: Ward[] }>(`${process.env.REACT_APP_API_URL}/api/address/district/${districtId}`);
-        //   wardsData = wardsData.concat(res.data.wards);
-        // }
-        // wardsData = wardsData.filter(w => wardIds.includes(w.id));
-        // const wardsMapTemp: Record<number, string> = {};
-        // // wardsData.forEach(w => { wardsMapTemp[w.id] = w.name; });
-        // wardsData.forEach(w => { wardsMapTemp[w.id] = w.path_with_type; });
-        // setWardsMap(wardsMapTemp);
-
         setLoading(false);
       } catch (error) {
         console.error(error);
@@ -148,16 +112,7 @@ const HousesList: React.FC<({ refresh?: boolean })> = ({ refresh }) => {
   return (
     <div>
       {houses.length === 0 && <p>Chưa có nhà trọ.</p>}
-      {/* {showEditForm && editingHouse && (
-        <HouseForm
-          initialData={editingHouse}
-          onClose={handleCloseForm}
-          onSuccess={() => {
-            // Refresh danh sách nhà trọ sau khi chỉnh sửa thành công
-          }}
-          mode="edit"
-        />
-      )} */}
+
       <ul className="flex flex-col gap-[2rem]">
         {houses.map(house => (
           <li key={house.id}>

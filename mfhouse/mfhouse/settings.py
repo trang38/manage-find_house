@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google', # add for all-auth
     'allauth.headless', 
     'vi_address', # add django-vi-address
-    'crud',
     'chat',
     'infor',
     'house',
@@ -65,7 +64,8 @@ INSTALLED_APPS = [
     # 'websocket_notifications', 
     # 'snitch', 
     'django_filters',
-    
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 ]
 SITE_ID = 1
 MIDDLEWARE = [
@@ -293,6 +293,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE': 10,
 }

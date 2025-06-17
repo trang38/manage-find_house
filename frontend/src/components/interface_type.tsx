@@ -164,6 +164,7 @@ export const searchUser = async (username: string): Promise<Infor[]> => {
 
     return res.data; 
   } catch (err) {
+    console.log('err:',err);
     return [];
   }
 };

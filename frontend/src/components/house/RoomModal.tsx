@@ -56,6 +56,7 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
     });
     setExistingMedia((prev) => prev.filter((m) => m.id !== id));
   };
+
   const handleSubmit = async () => {
     try {
       console.log(room);
@@ -102,7 +103,7 @@ const RoomModal: React.FC<Props> = ({ room, house, onClose }) => {
 
       onClose();
     } catch (err) {
-      console.error(err);
+      alert(err);
     }
   };
 

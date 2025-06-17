@@ -368,7 +368,7 @@ const CurrentUserProfile: React.FC = () => {
           <p><strong className="text-[#006400] font-bold">Tên đầy đủ:  </strong> {infor.full_name}</p>
           <p><strong className="text-[#006400] font-bold">Tiểu sử:  </strong>{infor.bio && `${infor.bio}`}</p>
           <p><strong className="text-[#006400] font-bold">Số điện thoại:  </strong>{infor.phone_number && `${infor.phone_number}`}</p>
-          <p><strong className="text-[#006400] font-bold">Địa chỉ:  </strong> {typeof infor.ward === 'object' && `${infor.address_detail}, ${infor.ward.path_with_type}`}</p>
+          <p><strong className="text-[#006400] font-bold">Địa chỉ:  </strong> {infor.ward && typeof infor.ward === 'object' && `${infor.address_detail}, ${infor.ward.path_with_type}`}</p>
           <p><strong className="text-[#006400] font-bold">Số Căn Cước Công Dân:  </strong>{infor.national_id && `${infor.national_id}`}</p>
           <p><strong className="text-[#006400] font-bold">Nơi cấp:  </strong>{infor.national_id_address && `${infor.national_id_address}`}</p>
           <p><strong className="text-[#006400] font-bold">Ngày cấp:  </strong>{infor.national_id_date && `${infor.national_id_date}`}</p>

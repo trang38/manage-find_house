@@ -12,6 +12,7 @@ import os
 def start():
     scheduler = BackgroundScheduler()
     scheduler.add_job(check_contract_date, 'cron', hour='16', minute=0)
+    scheduler.add_job(check_payment_day, 'cron', hour='16', minute=0)
     scheduler.start()
 
 def check_contract_date():
@@ -46,5 +47,30 @@ def check_contract_date():
                 message=f"Hợp đồng của bạn tại phòng {room_name} tại nhà {house_name} sẽ hết hạn sau {days} ngày.",
                 from_email=os.getenv('EMAIL_HOST_USER'),
                 recipient_list=[landlord_email, tenant_email],
+                fail_silently=False,
+            )
+
+def check_payment_day():
+    today = date.today()
+    contracts = Contract.objects.filter(status='completed')
+
+    for contract in contracts:
+        if contract.payment_day == today.day:
+            landlord_email = contract.landlord.email
+            room_name = contract.room.room_name
+            house_name = contract.room.house.name
+
+            notification = Notification.objects.create(
+                receiver=contract.landlord,
+                message=f"Hôm nay là ngày thanh toán tiền phòng {room_name} - nhà {house_name}.",
+                type="payment"
+            )
+            send_notification_ws(notification)
+
+            send_mail(
+                subject=f"Đến hạn thanh toán phòng {room_name} - nhà {house_name}",
+                message=f"Hôm nay ({today.strftime('%d/%m')}) là ngày thanh toán hợp đồng của phòng {room_name} tại nhà {house_name}. Vui lòng kiểm tra thanh toán từ người thuê.",
+                from_email=os.getenv('EMAIL_HOST_USER'),
+                recipient_list=[landlord_email],
                 fail_silently=False,
             )

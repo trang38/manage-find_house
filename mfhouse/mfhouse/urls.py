@@ -27,6 +27,8 @@ from constract.views import ContractViewSet
 from noti.views import NotificationViewSet
 from chat.views import GetMessages, MyInbox, SendMessages
 from review.views import RatingViewSet, RoomFeedbackViewSet
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+
 # from websocket_notifications.api.rest_framework import NotificationGroupViewSet
 
 
@@ -51,20 +53,20 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')), # add urls of all-auth
     path("_allauth/", include("allauth.headless.urls")), # include api endpoints of allauth
     path('api/address/', include('vi_address.urls')), # add urls of vi-address
-    path("", include("crud.urls")),
+    # path("", include("crud.urls")),
     path('api/profile/me/', CurrentUserAPIView.as_view(), name='user-current'),
     path('api/profile/users/<str:username>', PublicUserAPIView.as_view(), name='user-public'),
     path('api/search/users/', SearchUserAPIView.as_view(), name='user-search'),
     path("api/my-messages/<user_id>/", MyInbox.as_view()),
     path("api/get-messages/<sender_id>/<receiver_id>/", GetMessages.as_view()),
     path("api/send-messages/", SendMessages.as_view()),
-    # path('api/posts/filter/', PostListView.as_view(), name='post-filter'),
-    #  path('api/houses/<int:house_id>/rooms/', RoomsByHouseView.as_view(), name='rooms-by-house'),
-    # path('websocket-notifications/', include('websocket_notifications.urls', namespace='websocket_notifications')) # add api of websocket-notifications to check
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 urlpatterns +=static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
-for url in router.urls:
-    print(f"{url.pattern} => {url.name}")
+# for url in router.urls:
+#     print(f"{url.pattern} => {url.name}")

@@ -24,7 +24,7 @@ const ChatInbox: React.FC<ChatInboxProps & { refresh?: number }> = ({ userId, on
   // }, [userId]);
   return (
     <div>
-      <ul className="flex flex-col gap-[0.5rem] w-full">
+      <ul className="flex flex-col gap-[0.5rem] w-full overflow-auto">
         {inbox.map((msg) => (
           <li key={msg.id} onClick={() => onSelect({
             id: msg.sender.id === userId ? msg.receiver.id : msg.sender.id,

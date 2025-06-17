@@ -18,7 +18,13 @@ class CurrentUserAPIView(APIView):
     
     def put(self, request):
         print("Request data:", request.data)
-        infor = request.user.infor
+        # infor = request.user.infor
+        from django.core.exceptions import ObjectDoesNotExist
+
+        try:
+            infor = request.user.infor
+        except ObjectDoesNotExist:
+            return Response({'detail': 'User has no profile'}, status=400)
         serializer = InforSerializer(infor, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
